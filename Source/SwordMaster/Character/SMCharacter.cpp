@@ -13,6 +13,8 @@
 #include "Animation/AnimMontage.h"
 #include "Character/CharacterProgressAttackData.h"
 #include "Character/CharacterAttackComponent.h"
+#include "MotionWarpingComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ASMCharacter::ASMCharacter()
 {
@@ -39,8 +41,12 @@ ASMCharacter::ASMCharacter()
 		GetMesh()->SetSkeletalMesh(MeshRef.Object);
 	}
 
+	SwordComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Sword"));
+	SwordComponent->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+
 	/* 컴포넌트 */
 	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
+	MotionWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 
 
 	/* Input */
@@ -119,9 +125,20 @@ void ASMCharacter::LookUp(const FInputActionValue& Value)
 
 void ASMCharacter::Attack()
 {
+	MotionWrap();
 	AttackComponent->ProgressAttack();
 }
 
+
+void ASMCharacter::MotionWrap()
+{
+	const FVector MovementInputVector = GetLastMovementInputVector();
+	const FVector PlayerLoc = GetActorLocation();
+	const FVector TargetLoc = (MovementInputVector.GetSafeNormal() * 100) + PlayerLoc;
+	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(MovementInputVector);
+	UE_LOG(LogTemp, Display, TEXT("MotionWrap 실행?"));
+	MotionWarpComponent->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ProgressAttack"), TargetLoc, TargetRotator);
+}
 
 ASMPlayerController* ASMCharacter::GetPlayerController()
 {

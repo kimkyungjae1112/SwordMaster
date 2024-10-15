@@ -59,6 +59,17 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Attack")
 	TObjectPtr<class UCharacterAttackComponent> AttackComponent;
 
+/* 무기 */
+private:
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TObjectPtr<class USkeletalMeshComponent> SwordComponent;
+
+/* 모션 워핑 */
+private:
+	UPROPERTY(EditAnywhere, Category = "MotionWarp")
+	TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
+
+	void MotionWrap();
 
 private:
 	ASMPlayerController* GetPlayerController();

@@ -10,7 +10,7 @@ public class SwordMaster : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] { "SwordMaster" });
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "MotionWarping", "UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
