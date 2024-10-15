@@ -6,7 +6,7 @@
 
 ASMGameModeBase::ASMGameModeBase()
 {
-	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnRef(TEXT("/Game/SwordMaster/Blueprint/BP_SMCharacter.BP_SMCharacter_C"));
+	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnRef(TEXT("/Game/SwordMaster/Blueprint/Character/BP_SMCharacter.BP_SMCharacter_C"));
 	if (DefaultPawnRef.Class)
 	{
 		DefaultPawnClass = DefaultPawnRef.Class;

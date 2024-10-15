@@ -37,13 +37,13 @@ public:
 	float GroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	uint8 bIsIdle;
+	uint8 bIsIdle : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	uint8 bIsJumping;
+	uint8 bIsJumping : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	uint8 bIsFalling;
+	uint8 bIsFalling : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	FVector Velocity;

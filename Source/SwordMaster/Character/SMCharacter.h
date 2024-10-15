@@ -47,8 +47,17 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> JumpAction;
 
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> AttackAction;
+
 	void Move(const FInputActionValue& Value);
 	void LookUp(const FInputActionValue& Value);
+	void Attack();
+
+/* 공격 컴포넌트 */
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Attack")
+	TObjectPtr<class UCharacterAttackComponent> AttackComponent;
 
 
 private:

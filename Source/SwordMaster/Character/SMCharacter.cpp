@@ -9,10 +9,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "Player/SMPlayerController.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Character/CharacterProgressAttackData.h"
+#include "Character/CharacterAttackComponent.h"
 
 ASMCharacter::ASMCharacter()
 {
-	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 650.f;
@@ -22,12 +25,12 @@ ASMCharacter::ASMCharacter()
 
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 
 	SpringArm->bUsePawnControlRotation = true;
 	Camera->bUsePawnControlRotation = false;
 	
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple'"));
@@ -35,6 +38,10 @@ ASMCharacter::ASMCharacter()
 	{
 		GetMesh()->SetSkeletalMesh(MeshRef.Object);
 	}
+
+	/* 컴포넌트 */
+	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
+
 
 	/* Input */
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/SwordMaster/Input/IMC/IMC_Default.IMC_Default'"));
@@ -56,6 +63,11 @@ ASMCharacter::ASMCharacter()
 	if (JumpActionRef.Object)
 	{
 		JumpAction = JumpActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Attack.IA_Attack'"));
+	if (AttackActionRef.Object)
+	{
+		AttackAction = AttackActionRef.Object;
 	}
 }
 
@@ -79,6 +91,7 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &ASMCharacter::LookUp);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ASMCharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASMCharacter::StopJumping);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ASMCharacter::Attack);
 
 }
 
@@ -100,9 +113,15 @@ void ASMCharacter::LookUp(const FInputActionValue& Value)
 {
 	FVector2D InputValue = Value.Get<FVector2D>();
 
-	AddControllerPitchInput(InputValue.X);
-	AddControllerYawInput(-InputValue.Y);
+	AddControllerPitchInput(InputValue.X * 0.5f);
+	AddControllerYawInput(-InputValue.Y * 0.5f);
 }
+
+void ASMCharacter::Attack()
+{
+	AttackComponent->ProgressAttack();
+}
+
 
 ASMPlayerController* ASMCharacter::GetPlayerController()
 {
