@@ -39,6 +39,14 @@ private:
 	FTimerHandle PATimerHandle;
 
 
+	/* Hit Check */
+	void ProgressAttackTargetSet();
+	bool ProgressAttackSphereCheck();
+	bool ProgressAttackInDegree(AActor* Actor, float Degree);
+	
+	UPROPERTY()
+	TArray<FOverlapResult> OverlapResults;
+
 /* 몽타주 */
 private:
 	UPROPERTY(EditAnywhere, Category = "Montage")
@@ -50,5 +58,5 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Character")
 	TObjectPtr<class ACharacter> Character;
 
-		
+	class UMotionWarpingComponent* GetMotionWarpComponent();
 };

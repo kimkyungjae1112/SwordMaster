@@ -7,6 +7,10 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Character/CharacterProgressAttackData.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "MotionWarpingComponent.h"
+#include "Engine/DamageEvents.h"
+#include "Engine/OverlapResult.h"
 
 UCharacterAttackComponent::UCharacterAttackComponent()
 {
@@ -30,7 +34,6 @@ void UCharacterAttackComponent::ProgressAttack()
 	if (CurrentPA == 0)
 	{
 		BeginProgressAttack();
-		UE_LOG(LogTemp, Display, TEXT("실행되나?"));
 		return;
 	}
 
@@ -49,7 +52,8 @@ void UCharacterAttackComponent::BeginProgressAttack()
 	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 
 	CurrentPA = 1;
-	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	ProgressAttackTargetSet();
 	AnimInstance->Montage_Play(ProgressAttackMontage);
 
 	FOnMontageEnded MontageEnd;
@@ -64,8 +68,6 @@ void UCharacterAttackComponent::EndProgressAttack(UAnimMontage* Target, bool IsP
 {
 	ensure(CurrentPA != 0);
 	CurrentPA = 0;
-
-	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
 void UCharacterAttackComponent::SetProgressAttackTimer()
@@ -89,11 +91,83 @@ void UCharacterAttackComponent::ProgressAttackCheck()
 
 		CurrentPA = FMath::Clamp(CurrentPA + 1, 1, ProgressAttackData->MaxComboCount);
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ProgressAttackData->MontageSectionNamePrefix, CurrentPA);
+		ProgressAttackTargetSet();
 		AnimInstacne->Montage_JumpToSection(NextSection, ProgressAttackMontage);
 
 		SetProgressAttackTimer();
 		HasNextPACommand = false;
 	}
+}
+
+void UCharacterAttackComponent::ProgressAttackTargetSet()
+{
+	if (ProgressAttackSphereCheck())
+	{
+		for (const auto& OverlapResult : OverlapResults)
+		{
+			if(ProgressAttackInDegree(OverlapResult.GetActor(), 90.f))
+			{
+				const FVector PlayerLocation = Character->GetActorLocation();
+				const FVector TargetLocation = OverlapResult.GetActor()->GetActorLocation();
+				const FVector MoveLocation = TargetLocation + (PlayerLocation - TargetLocation).GetSafeNormal() * 10.f;
+				const FVector Direction = (TargetLocation - PlayerLocation).GetSafeNormal();
+				
+				FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(Direction);
+				GetMotionWarpComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ProgressAttack"), MoveLocation, TargetRotator);
+
+				return;
+			}
+		}
+	}
+}
+
+bool UCharacterAttackComponent::ProgressAttackSphereCheck()
+{
+	const float Range = 300.f;
+	
+	FVector Origin = Character->GetActorLocation();
+	FCollisionQueryParams Params(NAME_None, false, Character);
+	FColor Color = FColor::Red;
+
+	bool bHit = GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECC_GameTraceChannel2, FCollisionShape::MakeSphere(Range), Params);
+
+	if (bHit)
+	{
+		// OverlapResults 배열을 거리 기준으로 정렬
+		OverlapResults.Sort([this](const FOverlapResult& A, const FOverlapResult& B)
+			{
+				// A와 B 액터 간의 거리를 계산
+				float DistanceA = FVector::Dist(Character->GetActorLocation(), A.GetActor()->GetActorLocation());
+				float DistanceB = FVector::Dist(Character->GetActorLocation(), B.GetActor()->GetActorLocation());
+
+				// 오름차순으로 정렬
+				return DistanceA < DistanceB;
+			});
+		Color = FColor::Green;
+	}
+	
+	DrawDebugSphere(GetWorld(), Origin, Range, 32, Color, false, 3.f);
+	return bHit;
+}
+
+bool UCharacterAttackComponent::ProgressAttackInDegree(AActor* Actor, float Degree)
+{
+	FVector PlayerLocation = Character->GetActorLocation();
+	FVector ForwardVector = Character->GetActorForwardVector();
+	FVector TargetLocation = Actor->GetActorLocation();
+	FVector Direction = (TargetLocation - PlayerLocation).GetSafeNormal();
+
+	float DotProduct = FVector::DotProduct(ForwardVector, Direction);
+	float AngleToTarget = FMath::Acos(DotProduct);
+
+	float AngleToTargetDegrees = FMath::RadiansToDegrees(AngleToTarget);
+
+	return AngleToTargetDegrees <= (Degree / 2.f);
+}
+
+UMotionWarpingComponent* UCharacterAttackComponent::GetMotionWarpComponent()
+{
+	return Character->GetComponentByClass<UMotionWarpingComponent>();
 }
 
 

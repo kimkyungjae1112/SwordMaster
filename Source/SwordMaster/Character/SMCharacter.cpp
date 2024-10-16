@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
@@ -34,6 +35,9 @@ ASMCharacter::ASMCharacter()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple'"));
 	if (MeshRef.Object)
@@ -125,19 +129,7 @@ void ASMCharacter::LookUp(const FInputActionValue& Value)
 
 void ASMCharacter::Attack()
 {
-	MotionWrap();
 	AttackComponent->ProgressAttack();
-}
-
-
-void ASMCharacter::MotionWrap()
-{
-	const FVector MovementInputVector = GetLastMovementInputVector();
-	const FVector PlayerLoc = GetActorLocation();
-	const FVector TargetLoc = (MovementInputVector.GetSafeNormal() * 100) + PlayerLoc;
-	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(MovementInputVector);
-	UE_LOG(LogTemp, Display, TEXT("MotionWrap 실행?"));
-	MotionWarpComponent->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ProgressAttack"), TargetLoc, TargetRotator);
 }
 
 ASMPlayerController* ASMCharacter::GetPlayerController()

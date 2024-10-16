@@ -69,7 +69,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "MotionWarp")
 	TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 
-	void MotionWrap();
 
 private:
 	ASMPlayerController* GetPlayerController();
