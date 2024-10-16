@@ -14,6 +14,7 @@
 #include "Animation/AnimMontage.h"
 #include "Character/CharacterProgressAttackData.h"
 #include "Character/CharacterAttackComponent.h"
+#include "Character/CharacterParkourComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -35,6 +36,7 @@ ASMCharacter::ASMCharacter()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
@@ -51,7 +53,7 @@ ASMCharacter::ASMCharacter()
 	/* 컴포넌트 */
 	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
 	MotionWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-
+	ParkourComponent = CreateDefaultSubobject<UCharacterParkourComponent>(TEXT("Parkour Component"));
 
 	/* Input */
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/SwordMaster/Input/IMC/IMC_Default.IMC_Default'"));
@@ -84,6 +86,16 @@ ASMCharacter::ASMCharacter()
 	{
 		BlockAction = BlockActionRef.Object;
 	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> CrouchActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Crouch.IA_Crouch'"));
+	if (CrouchActionRef.Object)
+	{
+		CrouchAction = CrouchActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Run.IA_Run'"));
+	if (RunActionRef.Object)
+	{
+		RunAction = RunActionRef.Object;
+	}
 }
 
 void ASMCharacter::BeginPlay()
@@ -109,6 +121,10 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ASMCharacter::Attack);
 	EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginBlock);
 	EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASMCharacter::EndBlock);
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginCrouch);
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASMCharacter::EndCrouch);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginRun);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ASMCharacter::StopRun);
 
 }
 
@@ -147,6 +163,26 @@ void ASMCharacter::BeginBlock()
 void ASMCharacter::EndBlock()
 {
 	AttackComponent->EndBlock();
+}
+
+void ASMCharacter::BeginCrouch()
+{
+	ParkourComponent->BeginCrouch();
+}
+
+void ASMCharacter::EndCrouch()
+{
+	ParkourComponent->EndCrouch();
+}
+
+void ASMCharacter::BeginRun()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+}
+
+void ASMCharacter::StopRun()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 }
 
 

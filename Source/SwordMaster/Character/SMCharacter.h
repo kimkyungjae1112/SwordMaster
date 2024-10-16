@@ -53,11 +53,21 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> BlockAction;
 
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> CrouchAction;
+
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> RunAction;
+
 	void Move(const FInputActionValue& Value);
 	void LookUp(const FInputActionValue& Value);
 	void Attack();
 	void BeginBlock();
 	void EndBlock();
+	void BeginCrouch();
+	void EndCrouch();
+	void BeginRun();
+	void StopRun();
 
 /* 공격 컴포넌트 */
 private:
@@ -73,6 +83,11 @@ private:
 private:
 	UPROPERTY(EditAnywhere, Category = "MotionWarp")
 	TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
+
+/* 파쿠르 컴포넌트 */
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Parkour")
+	TObjectPtr<class UCharacterParkourComponent> ParkourComponent;
 
 
 private:
