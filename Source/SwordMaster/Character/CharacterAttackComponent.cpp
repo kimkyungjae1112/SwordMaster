@@ -4,7 +4,7 @@
 #include "Character/CharacterAttackComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Animation/AnimInstance.h"
+#include "Animation/CharacterAnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Character/CharacterProgressAttackData.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -163,6 +163,20 @@ bool UCharacterAttackComponent::ProgressAttackInDegree(AActor* Actor, float Degr
 	float AngleToTargetDegrees = FMath::RadiansToDegrees(AngleToTarget);
 
 	return AngleToTargetDegrees <= (Degree / 2.f);
+}
+
+void UCharacterAttackComponent::BeginBlock()
+{
+	UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(Character->GetMesh()->GetAnimInstance());
+
+	AnimInstance->bIsBlock = true;
+}
+
+void UCharacterAttackComponent::EndBlock()
+{
+	UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(Character->GetMesh()->GetAnimInstance());
+
+	AnimInstance->bIsBlock = false;
 }
 
 UMotionWarpingComponent* UCharacterAttackComponent::GetMotionWarpComponent()

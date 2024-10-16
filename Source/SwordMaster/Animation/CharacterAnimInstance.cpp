@@ -10,6 +10,7 @@ UCharacterAnimInstance::UCharacterAnimInstance()
 {
 	MovingThreshould = 3.f;
 	JumpingThreshould = 30.f;
+	bIsBlock = false;
 }
 
 void UCharacterAnimInstance::NativeInitializeAnimation()

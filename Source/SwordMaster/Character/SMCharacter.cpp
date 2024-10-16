@@ -79,6 +79,11 @@ ASMCharacter::ASMCharacter()
 	{
 		AttackAction = AttackActionRef.Object;
 	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> BlockActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Block.IA_Block'"));
+	if (BlockActionRef.Object)
+	{
+		BlockAction = BlockActionRef.Object;
+	}
 }
 
 void ASMCharacter::BeginPlay()
@@ -102,6 +107,8 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ASMCharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASMCharacter::StopJumping);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ASMCharacter::Attack);
+	EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginBlock);
+	EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASMCharacter::EndBlock);
 
 }
 
@@ -131,6 +138,18 @@ void ASMCharacter::Attack()
 {
 	AttackComponent->ProgressAttack();
 }
+
+void ASMCharacter::BeginBlock()
+{
+	AttackComponent->BeginBlock();
+}
+
+void ASMCharacter::EndBlock()
+{
+	AttackComponent->EndBlock();
+}
+
+
 
 ASMPlayerController* ASMCharacter::GetPlayerController()
 {

@@ -46,6 +46,9 @@ public:
 	uint8 bIsFalling : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	uint8 bIsBlock : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	FVector Velocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")

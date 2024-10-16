@@ -47,6 +47,12 @@ private:
 	UPROPERTY()
 	TArray<FOverlapResult> OverlapResults;
 
+/* 방어 */
+public:
+	void BeginBlock();
+	void EndBlock();
+
+
 /* 몽타주 */
 private:
 	UPROPERTY(EditAnywhere, Category = "Montage")

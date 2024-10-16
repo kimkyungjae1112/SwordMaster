@@ -50,9 +50,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> AttackAction;
 
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> BlockAction;
+
 	void Move(const FInputActionValue& Value);
 	void LookUp(const FInputActionValue& Value);
 	void Attack();
+	void BeginBlock();
+	void EndBlock();
 
 /* 공격 컴포넌트 */
 private:
