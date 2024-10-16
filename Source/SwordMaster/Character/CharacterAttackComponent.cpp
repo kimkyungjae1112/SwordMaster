@@ -68,6 +68,7 @@ void UCharacterAttackComponent::EndProgressAttack(UAnimMontage* Target, bool IsP
 {
 	ensure(CurrentPA != 0);
 	CurrentPA = 0;
+	ProgressAttackRemoveTarget();
 }
 
 void UCharacterAttackComponent::SetProgressAttackTimer()
@@ -109,16 +110,25 @@ void UCharacterAttackComponent::ProgressAttackTargetSet()
 			{
 				const FVector PlayerLocation = Character->GetActorLocation();
 				const FVector TargetLocation = OverlapResult.GetActor()->GetActorLocation();
-				const FVector MoveLocation = TargetLocation + (PlayerLocation - TargetLocation).GetSafeNormal() * 10.f;
+				const FVector MoveLocation = TargetLocation + (PlayerLocation - TargetLocation).GetSafeNormal() * 15.f;
 				const FVector Direction = (TargetLocation - PlayerLocation).GetSafeNormal();
 				
 				FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(Direction);
 				GetMotionWarpComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ProgressAttack"), MoveLocation, TargetRotator);
 
 				return;
-			}
+			}	
 		}
 	}
+	else
+	{
+		GetMotionWarpComponent()->RemoveWarpTarget(TEXT("ProgressAttack"));
+	}
+}
+
+void UCharacterAttackComponent::ProgressAttackRemoveTarget()
+{
+	GetMotionWarpComponent()->RemoveWarpTarget(TEXT("ProgressAttack"));
 }
 
 bool UCharacterAttackComponent::ProgressAttackSphereCheck()

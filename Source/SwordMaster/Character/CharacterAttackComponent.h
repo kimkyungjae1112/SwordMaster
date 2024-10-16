@@ -39,8 +39,9 @@ private:
 	FTimerHandle PATimerHandle;
 
 
-	/* Hit Check */
+	/* Motion Warp */
 	void ProgressAttackTargetSet();
+	void ProgressAttackRemoveTarget();
 	bool ProgressAttackSphereCheck();
 	bool ProgressAttackInDegree(AActor* Actor, float Degree);
 	
