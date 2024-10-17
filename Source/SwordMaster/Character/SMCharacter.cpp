@@ -17,6 +17,8 @@
 #include "Character/CharacterParkourComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/BoxComponent.h"
+#include "Engine/DamageEvents.h"
 
 ASMCharacter::ASMCharacter()
 {
@@ -49,6 +51,12 @@ ASMCharacter::ASMCharacter()
 
 	SwordComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Sword"));
 	SwordComponent->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+	SwordComponent->SetCollisionProfileName(TEXT("NoCollision"));
+
+	HitBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	HitBoxComponent->SetupAttachment(SwordComponent);
+	HitBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ASMCharacter::OnHitOverlap);
+	HitBoxComponent->SetCollisionProfileName(TEXT("Sword"));
 
 	/* 컴포넌트 */
 	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
@@ -126,6 +134,16 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginRun);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ASMCharacter::StopRun);
 
+}
+
+void ASMCharacter::OnHitOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	/*if (OtherActor != this && OtherActor)
+	{
+		FDamageEvent DamageEvent;
+		OtherActor->TakeDamage(50.f, DamageEvent, GetController(), this);
+		UE_LOG(LogTemp, Display, TEXT("Overlap"));
+	}*/
 }
 
 void ASMCharacter::Move(const FInputActionValue& Value)

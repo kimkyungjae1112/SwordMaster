@@ -11,6 +11,7 @@
 #include "MotionWarpingComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/OverlapResult.h"
+#include "GameFramework/PlayerController.h"
 
 UCharacterAttackComponent::UCharacterAttackComponent()
 {
@@ -29,6 +30,7 @@ void UCharacterAttackComponent::BeginPlay()
 	Character = CastChecked<ACharacter>(GetOwner());
 }
 
+/* 콤보 어택 */
 void UCharacterAttackComponent::ProgressAttack()
 {
 	if (CurrentPA == 0)
@@ -100,9 +102,13 @@ void UCharacterAttackComponent::ProgressAttackCheck()
 	}
 }
 
+
+
+/* 모션 워핑 */
 void UCharacterAttackComponent::ProgressAttackTargetSet()
 {
-	if (ProgressAttackSphereCheck())
+	TArray<FOverlapResult> OverlapResults;
+	if (ProgressAttackSphereCheck(OverlapResults))
 	{
 		for (const auto& OverlapResult : OverlapResults)
 		{
@@ -110,7 +116,7 @@ void UCharacterAttackComponent::ProgressAttackTargetSet()
 			{
 				const FVector PlayerLocation = Character->GetActorLocation();
 				const FVector TargetLocation = OverlapResult.GetActor()->GetActorLocation();
-				const FVector MoveLocation = TargetLocation + (PlayerLocation - TargetLocation).GetSafeNormal() * 15.f;
+				const FVector MoveLocation = TargetLocation + (PlayerLocation - TargetLocation).GetSafeNormal() * 50.f;
 				const FVector Direction = (TargetLocation - PlayerLocation).GetSafeNormal();
 				
 				FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(Direction);
@@ -131,7 +137,9 @@ void UCharacterAttackComponent::ProgressAttackRemoveTarget()
 	GetMotionWarpComponent()->RemoveWarpTarget(TEXT("ProgressAttack"));
 }
 
-bool UCharacterAttackComponent::ProgressAttackSphereCheck()
+
+/* 모션 워핑, 히트체크에 필요한 함수들 */
+bool UCharacterAttackComponent::ProgressAttackSphereCheck(TArray<FOverlapResult>& OverlapResults)
 {
 	const float Range = 300.f;
 	
@@ -156,7 +164,6 @@ bool UCharacterAttackComponent::ProgressAttackSphereCheck()
 		Color = FColor::Green;
 	}
 	
-	DrawDebugSphere(GetWorld(), Origin, Range, 32, Color, false, 3.f);
 	return bHit;
 }
 
@@ -173,6 +180,23 @@ bool UCharacterAttackComponent::ProgressAttackInDegree(AActor* Actor, float Degr
 	float AngleToTargetDegrees = FMath::RadiansToDegrees(AngleToTarget);
 
 	return AngleToTargetDegrees <= (Degree / 2.f);
+}
+
+void UCharacterAttackComponent::ProgressAttackHitCheck()
+{
+	const float Damage = 50.f;
+	TArray<FOverlapResult> OverlapResults;
+	if (ProgressAttackSphereCheck(OverlapResults))
+	{
+		for (const auto& OverlapResult : OverlapResults)
+		{
+			if (ProgressAttackInDegree(OverlapResult.GetActor(), 90.f))
+			{
+				FDamageEvent DamageEvent;
+				OverlapResult.GetActor()->TakeDamage(Damage, DamageEvent, GetPlayerController(), Character);
+			}
+		}
+	}
 }
 
 void UCharacterAttackComponent::BeginBlock()
@@ -192,6 +216,11 @@ void UCharacterAttackComponent::EndBlock()
 UMotionWarpingComponent* UCharacterAttackComponent::GetMotionWarpComponent()
 {
 	return Character->GetComponentByClass<UMotionWarpingComponent>();
+}
+
+APlayerController* UCharacterAttackComponent::GetPlayerController()
+{
+	return Cast<APlayerController>(Character->GetController());
 }
 
 

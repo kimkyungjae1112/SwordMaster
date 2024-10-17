@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Interface/AttackHitCheckInterface.h"
 #include "CharacterAttackComponent.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class SWORDMASTER_API UCharacterAttackComponent : public UActorComponent
+class SWORDMASTER_API UCharacterAttackComponent : public UActorComponent, public IAttackHitCheckInterface
 {
 	GENERATED_BODY()
 
@@ -42,11 +43,11 @@ private:
 	/* Motion Warp */
 	void ProgressAttackTargetSet();
 	void ProgressAttackRemoveTarget();
-	bool ProgressAttackSphereCheck();
+	bool ProgressAttackSphereCheck(TArray<FOverlapResult>& OverlapResults);
 	bool ProgressAttackInDegree(AActor* Actor, float Degree);
 	
-	UPROPERTY()
-	TArray<FOverlapResult> OverlapResults;
+	/* Hit Check */
+	virtual void ProgressAttackHitCheck() override;
 
 /* 방어 */
 public:
@@ -66,4 +67,5 @@ private:
 	TObjectPtr<class ACharacter> Character;
 
 	class UMotionWarpingComponent* GetMotionWarpComponent();
+	class APlayerController* GetPlayerController();
 };
