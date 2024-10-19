@@ -23,20 +23,15 @@ public:
 
 /* 히트 액션 섹션 */
 private:
-	void BeginHit1();
-	void EndHit1(class UAnimMontage* Target, bool IsProperlyEnded);
-	void SetTimerHit1();
-	void Hit1TimerCheck();
+	void BeginProgressAttackHit();
+	void EndProgressAttackHit(class UAnimMontage* Target, bool IsProperlyEnded);
 
-	int32 Hit1Count = 0;
-	bool HasNextHitAction = false;
-	FTimerHandle Hit1TimerHandle;
+	int32 CurrentHit = 0;
 
 	UPROPERTY(EditAnywhere, Category = "HitData")
-	TObjectPtr<class UEnemyHitData> HitData;
+	TObjectPtr<class UEnemyHitData> ProgressAttackHitData;
 
-/* 몽타주 섹션 */
+/* 모션 워핑 섹션 */
 private:
-	UPROPERTY(EditAnywhere, Category = "Montage")
-	TObjectPtr<class UAnimMontage> Hit1Montage;
+
 };

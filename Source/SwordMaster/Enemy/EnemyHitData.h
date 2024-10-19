@@ -15,15 +15,6 @@ class SWORDMASTER_API UEnemyHitData : public UPrimaryDataAsset
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, Category = "Name")
-	FString MontageSectionNamePrefix;
-
-	UPROPERTY(EditAnywhere, Category = "Count")
-	uint8 MaxHitCount;
-
-	UPROPERTY(EditAnywhere, Category = "Rate")
-	float FrameRate;
-
-	UPROPERTY(EditAnywhere, Category = "Name")
-	TArray<float> EffectiveFrameCount;
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TArray<class UAnimMontage*> ProgressAttackHitMontages;
 };
