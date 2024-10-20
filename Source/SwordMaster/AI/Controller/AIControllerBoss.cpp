@@ -20,3 +20,24 @@ AAIControllerBoss::AAIControllerBoss()
 	}
 }
 
+void AAIControllerBoss::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	APawn* Target = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("Target")));
+	if (Target)
+	{
+		FRotator TargetRotation = (Target->GetActorLocation() - GetPawn()->GetActorLocation()).Rotation();
+		Interval += DeltaTime;
+		if (Interval >= 1.5f)
+		{
+			FVector TargetLocation = Target->GetActorLocation();
+			TargetLocation.X += FMath::RandRange(-300.f, 300.f);
+			TargetLocation.Y += FMath::RandRange(-300.f, 300.f);
+			MoveToLocation(TargetLocation);
+			Interval = 0.f;
+		}
+		GetPawn()->SetActorRotation(TargetRotation);
+	}
+}
+

@@ -23,8 +23,11 @@ public:
 public:
 	virtual float GetDetectRadius() override;
 	virtual float GetPatrolRadius() override;
+	virtual float GetAttackRange() override;
+	virtual void SetAttackFinished(const FOnAttackFinished& InOnAttackFinished) override;
+	virtual void AttackByAI() override;
 
-
+	FOnAttackFinished OnAttackFinished;
 /* 메쉬 */
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
@@ -41,7 +44,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = "HitData")
 	TObjectPtr<class UEnemyHitData> ProgressAttackHitData;
 
-/* 모션 워핑 섹션 */
+/* 공격 섹션 */
 private:
+	void BeginDefaultAttack();
+	void EndDefaultAttack(class UAnimMontage* Target, bool IsProperlyEnded);
+
+
+/* 몽타주 섹션 */
+private:
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> DefaultAttackMontage;
 
 };

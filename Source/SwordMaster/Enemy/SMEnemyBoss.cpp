@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Enemy/EnemyHitData.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ASMEnemyBoss::ASMEnemyBoss()
 {
@@ -24,6 +25,8 @@ ASMEnemyBoss::ASMEnemyBoss()
 	{
 		WeaponMeshComp->SetSkeletalMesh(WeaponMeshRef.Object);
 	}
+
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 }
 
 float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -41,6 +44,21 @@ float ASMEnemyBoss::GetDetectRadius()
 float ASMEnemyBoss::GetPatrolRadius()
 {
 	return 600.0f;
+}
+
+float ASMEnemyBoss::GetAttackRange()
+{
+	return 300.0f;
+}
+
+void ASMEnemyBoss::SetAttackFinished(const FOnAttackFinished& InOnAttackFinished)
+{
+	OnAttackFinished = InOnAttackFinished;
+}
+
+void ASMEnemyBoss::AttackByAI()
+{
+	BeginDefaultAttack();
 }
 
 void ASMEnemyBoss::BeginProgressAttackHit()
@@ -69,6 +87,24 @@ void ASMEnemyBoss::EndProgressAttackHit(UAnimMontage* Target, bool IsProperlyEnd
 	{
 		HasNextHit1 = false;
 	}
+}
+
+void ASMEnemyBoss::BeginDefaultAttack()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	AnimInstance->Montage_Play(DefaultAttackMontage);
+
+	FOnMontageEnded MontageEnd;
+	MontageEnd.BindUObject(this, &ASMEnemyBoss::EndDefaultAttack);
+	AnimInstance->Montage_SetEndDelegate(MontageEnd, DefaultAttackMontage);
+}
+
+void ASMEnemyBoss::EndDefaultAttack(UAnimMontage* Target, bool IsProperlyEnded)
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	OnAttackFinished.ExecuteIfBound();
 }
 
 

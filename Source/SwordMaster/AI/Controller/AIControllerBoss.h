@@ -17,4 +17,8 @@ class SWORDMASTER_API AAIControllerBoss : public AAIControllerBase
 public:
 	AAIControllerBoss();
 	
+	virtual void Tick(float DeltaTime) override;
+
+private:
+	float Interval = 0.f;
 };

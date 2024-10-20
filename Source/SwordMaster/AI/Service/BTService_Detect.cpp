@@ -35,6 +35,17 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		{
 			APawn* Target = Cast<APawn>(OverlapResult.GetActor());
 			OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("Target"), Target);
+		
+			float Dist = FVector::Dist(Target->GetActorLocation(), Owner->GetActorLocation());
+			if (Dist <= Interface->GetAttackRange())
+			{
+				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("CanAttack"), true);
+			}
+			else
+			{
+
+				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("CanAttack"), false);
+			}
 		}
 
 		return;

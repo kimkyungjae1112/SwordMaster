@@ -13,6 +13,8 @@ class UAIInterface : public UInterface
 	GENERATED_BODY()
 };
 
+DECLARE_DELEGATE(FOnAttackFinished);
+
 /**
  * 
  */
@@ -23,4 +25,8 @@ class SWORDMASTER_API IAIInterface
 public:
 	virtual float GetDetectRadius() = 0;
 	virtual float GetPatrolRadius() = 0;
+	virtual float GetAttackRange() = 0;
+
+	virtual void SetAttackFinished(const FOnAttackFinished& InOnAttackFinished) = 0;
+	virtual void AttackByAI() = 0;
 };
