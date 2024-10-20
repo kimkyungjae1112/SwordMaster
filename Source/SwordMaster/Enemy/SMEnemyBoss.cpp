@@ -16,6 +16,14 @@ ASMEnemyBoss::ASMEnemyBoss()
 	}
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Enemy"));
+
+	WeaponMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+	WeaponMeshComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> WeaponMeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/DF_DRAGON_KNIGHT/MESHES/SWORD/SK_Dragon_knight_sword.SK_Dragon_knight_sword'"));
+	if (WeaponMeshRef.Object)
+	{
+		WeaponMeshComp->SetSkeletalMesh(WeaponMeshRef.Object);
+	}
 }
 
 float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -25,19 +33,25 @@ float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return DamageAmount;
 }
 
+float ASMEnemyBoss::GetDetectRadius()
+{
+	return 800.f;
+}
+
+float ASMEnemyBoss::GetPatrolRadius()
+{
+	return 600.0f;
+}
+
 void ASMEnemyBoss::BeginProgressAttackHit()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	if (CurrentHit >= 1 && AnimInstance->Montage_IsPlaying(ProgressAttackHitData->ProgressAttackHitMontages[CurrentHit - 1]))
-	{
-
-	}
-
 	int32 Temp = CurrentHit;
 	AnimInstance->Montage_Play(ProgressAttackHitData->ProgressAttackHitMontages[Temp]);
 	CurrentHit = FMath::Clamp(CurrentHit + 1, 1, 3);
-	
+	HasNextHit1 = true;
+
 	FOnMontageEnded MontageEnd;
 	MontageEnd.BindUObject(this, &ASMEnemyBoss::EndProgressAttackHit);
 	AnimInstance->Montage_SetEndDelegate(MontageEnd, ProgressAttackHitData->ProgressAttackHitMontages[Temp]);
@@ -46,13 +60,14 @@ void ASMEnemyBoss::BeginProgressAttackHit()
 void ASMEnemyBoss::EndProgressAttackHit(UAnimMontage* Target, bool IsProperlyEnded)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance->Montage_IsPlaying(ProgressAttackHitData->ProgressAttackHitMontages[CurrentHit - 1]))
+
+	if (!HasNextHit1)
 	{
-		if (CurrentHit == 3) CurrentHit = 0;
+		CurrentHit = 0;
 	}
 	else
 	{
-		CurrentHit = 0;
+		HasNextHit1 = false;
 	}
 }
 
