@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Enemy/EnemyHitData.h"
+#include "Enemy/EnemyDefaultAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ASMEnemyBoss::ASMEnemyBoss()
@@ -58,7 +59,21 @@ void ASMEnemyBoss::SetAttackFinished(const FOnAttackFinished& InOnAttackFinished
 
 void ASMEnemyBoss::AttackByAI()
 {
-	BeginDefaultAttack();
+	if (DefaultAttackCombo == 0)
+	{
+		BeginDefaultAttack();
+		return;
+	}
+
+	if (!DefaultAttackTimer.IsValid())
+	{
+		HasNextCombo = false;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display, TEXT("AttackCombo"));
+		HasNextCombo = true;
+	}
 }
 
 void ASMEnemyBoss::BeginProgressAttackHit()
@@ -93,18 +108,56 @@ void ASMEnemyBoss::BeginDefaultAttack()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
+	DefaultAttackCombo = 1;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	AnimInstance->Montage_Play(DefaultAttackMontage);
 
 	FOnMontageEnded MontageEnd;
 	MontageEnd.BindUObject(this, &ASMEnemyBoss::EndDefaultAttack);
 	AnimInstance->Montage_SetEndDelegate(MontageEnd, DefaultAttackMontage);
+
+	DefaultAttackTimer.Invalidate();
+	OnAttackFinished.ExecuteIfBound();
+	SetDefaultAttackTimer();
 }
 
 void ASMEnemyBoss::EndDefaultAttack(UAnimMontage* Target, bool IsProperlyEnded)
 {
+	ensure(DefaultAttackCombo != 0);
+	DefaultAttackCombo = 0;
+
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	OnAttackFinished.ExecuteIfBound();
+}
+
+void ASMEnemyBoss::SetDefaultAttackTimer()
+{
+	int32 Combo = DefaultAttackCombo - 1;
+	ensure(DefaultAttackData->EffectiveFrameCount.IsValidIndex(Combo));
+
+	float EffectiveTime = (DefaultAttackData->EffectiveFrameCount[Combo] / DefaultAttackData->FrameRate);
+	if (EffectiveTime > 0.f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(DefaultAttackTimer, this, &ASMEnemyBoss::DefaultAttackComboCheck, EffectiveTime, false);
+	}
+}
+
+void ASMEnemyBoss::DefaultAttackComboCheck()
+{
+	UE_LOG(LogTemp, Display, TEXT("ComboCheck"));
+	DefaultAttackTimer.Invalidate();
+	if (HasNextCombo)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+		DefaultAttackCombo = FMath::Clamp(DefaultAttackCombo + 1, 1, DefaultAttackData->MaxComboCount);
+		FName NextSection = *FString::Printf(TEXT("%s%d"), *DefaultAttackData->MontageSectionNamePrefix, DefaultAttackCombo);
+		AnimInstance->Montage_JumpToSection(NextSection, DefaultAttackMontage);
+
+		OnAttackFinished.ExecuteIfBound();
+		SetDefaultAttackTimer();
+		HasNextCombo = false;
+	}
 }
 
 

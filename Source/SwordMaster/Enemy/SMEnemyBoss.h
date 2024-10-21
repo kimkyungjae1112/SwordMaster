@@ -48,7 +48,15 @@ private:
 private:
 	void BeginDefaultAttack();
 	void EndDefaultAttack(class UAnimMontage* Target, bool IsProperlyEnded);
+	void SetDefaultAttackTimer();
+	void DefaultAttackComboCheck();
 
+	int32 DefaultAttackCombo = 0;
+	bool HasNextCombo = false;
+	FTimerHandle DefaultAttackTimer;
+
+	UPROPERTY(EditAnywhere, Category = "Combo")
+	TObjectPtr<class UEnemyDefaultAttackData> DefaultAttackData;
 
 /* 몽타주 섹션 */
 private:
