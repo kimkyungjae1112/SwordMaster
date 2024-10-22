@@ -30,4 +30,6 @@ public:
 	virtual void SetAttackFinished(const FOnAttackFinished& InOnAttackFinished) = 0;
 	virtual void AttackByAI() = 0;
 	virtual void AttackEndTiming() = 0;
+
+	virtual void DefaultAttackHitCheck() = 0;
 };

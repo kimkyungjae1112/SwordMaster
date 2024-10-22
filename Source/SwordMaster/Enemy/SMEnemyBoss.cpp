@@ -11,6 +11,8 @@
 #include "AI/Controller/AIControllerBoss.h"
 #include "MotionWarpingComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Engine/OverlapResult.h"
+#include "Engine/DamageEvents.h"
 
 ASMEnemyBoss::ASMEnemyBoss()
 {
@@ -86,6 +88,30 @@ void ASMEnemyBoss::AttackEndTiming()
 	}
 }
 
+void ASMEnemyBoss::DefaultAttackHitCheck()
+{
+	float Damage = 50.f;
+	float Range = 200.f;
+
+	TArray<FOverlapResult> OverlapResults;
+	FVector Origin = GetActorLocation();
+	FCollisionQueryParams Params(NAME_None, false, this);
+	FColor Color = FColor::Red;
+
+	bool bHit = GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel1, FCollisionShape::MakeSphere(Range), Params);
+
+	if (bHit)
+	{
+		for (const FOverlapResult& OverlapResult : OverlapResults)
+		{
+			FDamageEvent DamageEvent;
+			OverlapResult.GetActor()->TakeDamage(Damage, DamageEvent, GetController(), this);
+			Color = FColor::Green;
+		}
+	}
+	DrawDebugSphere(GetWorld(), Origin, Range, 24, Color, false, 3.f);
+}
+
 void ASMEnemyBoss::BeginProgressAttackHit()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -135,10 +161,11 @@ void ASMEnemyBoss::DefaultAttackMotionWarpSet()
 {
 	const FVector PlayerLoc = GetActorLocation();
 	const FVector TargetLoc = PlayerLoc + GetActorForwardVector() * 100.f;
-	//const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
+	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
 
-	MotionWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("DefaultAttack"), TargetLoc, (TargetLoc - PlayerLoc).Rotation());
+	MotionWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("DefaultAttack"), TargetLoc, TargetRotator);
 }
+
 
 
 

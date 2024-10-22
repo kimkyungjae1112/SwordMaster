@@ -30,6 +30,7 @@ public:
 	virtual void SetAttackFinished(const FOnAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
 	virtual void AttackEndTiming() override;
+	virtual void DefaultAttackHitCheck() override;
 
 	FOnAttackFinished OnAttackFinished;
 

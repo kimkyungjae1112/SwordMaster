@@ -53,11 +53,6 @@ ASMCharacter::ASMCharacter()
 	SwordComponent->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 	SwordComponent->SetCollisionProfileName(TEXT("NoCollision"));
 
-	HitBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	HitBoxComponent->SetupAttachment(SwordComponent);
-	HitBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ASMCharacter::OnHitOverlap);
-	HitBoxComponent->SetCollisionProfileName(TEXT("Sword"));
-
 	/* 컴포넌트 */
 	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
 	MotionWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
@@ -136,14 +131,13 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
-void ASMCharacter::OnHitOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+float ASMCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	/*if (OtherActor != this && OtherActor)
-	{
-		FDamageEvent DamageEvent;
-		OtherActor->TakeDamage(50.f, DamageEvent, GetController(), this);
-		UE_LOG(LogTemp, Display, TEXT("Overlap"));
-	}*/
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	UE_LOG(LogTemp, Display, TEXT("Damage 받음"));
+
+	return 0.0f;
 }
 
 void ASMCharacter::Move(const FInputActionValue& Value)
