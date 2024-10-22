@@ -43,6 +43,8 @@ private:
 	/* Motion Warp */
 	void ProgressAttackTargetSet();
 	void ProgressAttackRemoveTarget();
+
+	/* Attack Range */
 	bool ProgressAttackSphereCheck(TArray<FOverlapResult>& OverlapResults);
 	bool ProgressAttackInDegree(AActor* Actor, float Degree);
 	

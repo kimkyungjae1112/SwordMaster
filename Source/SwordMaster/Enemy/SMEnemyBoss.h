@@ -18,16 +18,21 @@ class SWORDMASTER_API ASMEnemyBoss : public ASMCharacterBase, public IAIInterfac
 public:
 	ASMEnemyBoss();
 
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
+protected:
+	virtual void BeginPlay() override;
 	
 public:
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 	virtual float GetDetectRadius() override;
 	virtual float GetPatrolRadius() override;
 	virtual float GetAttackRange() override;
 	virtual void SetAttackFinished(const FOnAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
+	virtual void AttackEndTiming() override;
 
 	FOnAttackFinished OnAttackFinished;
+
 /* 메쉬 */
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
@@ -44,23 +49,29 @@ private:
 	UPROPERTY(EditAnywhere, Category = "HitData")
 	TObjectPtr<class UEnemyHitData> ProgressAttackHitData;
 
-/* 공격 섹션 */
+
+/* 기본 공격 섹션 */
 private:
 	void BeginDefaultAttack();
 	void EndDefaultAttack(class UAnimMontage* Target, bool IsProperlyEnded);
-	void SetDefaultAttackTimer();
-	void DefaultAttackComboCheck();
+	
+	void DefaultAttackMotionWarpSet();
 
-	int32 DefaultAttackCombo = 0;
-	bool HasNextCombo = false;
-	FTimerHandle DefaultAttackTimer;
 
-	UPROPERTY(EditAnywhere, Category = "Combo")
-	TObjectPtr<class UEnemyDefaultAttackData> DefaultAttackData;
 
 /* 몽타주 섹션 */
 private:
 	UPROPERTY(EditAnywhere, Category = "Montage")
 	TObjectPtr<class UAnimMontage> DefaultAttackMontage;
+
+/* 컨트롤러 */
+private:
+	UPROPERTY()
+	TObjectPtr<class AAIControllerBoss> MyController;
+
+/* 모션 워핑 */
+private:
+	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
+	TObjectPtr<class UMotionWarpingComponent> MotionWarpComp;
 
 };

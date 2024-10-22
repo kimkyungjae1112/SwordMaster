@@ -18,6 +18,7 @@ public:
 	AAIControllerBoss();
 	
 	virtual void Tick(float DeltaTime) override;
+	bool AttackInRange();
 
 private:
 	float Interval = 0.f;

@@ -8,6 +8,9 @@
 #include "Enemy/EnemyHitData.h"
 #include "Enemy/EnemyDefaultAttackData.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "AI/Controller/AIControllerBoss.h"
+#include "MotionWarpingComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ASMEnemyBoss::ASMEnemyBoss()
 {
@@ -28,10 +31,21 @@ ASMEnemyBoss::ASMEnemyBoss()
 	}
 
 	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+
+	MotionWarpComp = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("Motion Warping"));
+}
+
+void ASMEnemyBoss::BeginPlay()
+{
+	Super::BeginPlay();
+
+	MyController = CastChecked<AAIControllerBoss>(GetController());
 }
 
 float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
 	BeginProgressAttackHit();
 
 	return DamageAmount;
@@ -59,20 +73,16 @@ void ASMEnemyBoss::SetAttackFinished(const FOnAttackFinished& InOnAttackFinished
 
 void ASMEnemyBoss::AttackByAI()
 {
-	if (DefaultAttackCombo == 0)
-	{
-		BeginDefaultAttack();
-		return;
-	}
+	BeginDefaultAttack();
+}
 
-	if (!DefaultAttackTimer.IsValid())
+void ASMEnemyBoss::AttackEndTiming()
+{
+	if (!MyController->AttackInRange())
 	{
-		HasNextCombo = false;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Display, TEXT("AttackCombo"));
-		HasNextCombo = true;
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+		AnimInstance->StopAllMontages(0.5f);
 	}
 }
 
@@ -108,56 +118,28 @@ void ASMEnemyBoss::BeginDefaultAttack()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	DefaultAttackCombo = 1;
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	DefaultAttackMotionWarpSet();
 	AnimInstance->Montage_Play(DefaultAttackMontage);
 
 	FOnMontageEnded MontageEnd;
 	MontageEnd.BindUObject(this, &ASMEnemyBoss::EndDefaultAttack);
 	AnimInstance->Montage_SetEndDelegate(MontageEnd, DefaultAttackMontage);
-
-	DefaultAttackTimer.Invalidate();
-	OnAttackFinished.ExecuteIfBound();
-	SetDefaultAttackTimer();
 }
 
 void ASMEnemyBoss::EndDefaultAttack(UAnimMontage* Target, bool IsProperlyEnded)
 {
-	ensure(DefaultAttackCombo != 0);
-	DefaultAttackCombo = 0;
-
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	OnAttackFinished.ExecuteIfBound();
 }
 
-void ASMEnemyBoss::SetDefaultAttackTimer()
+void ASMEnemyBoss::DefaultAttackMotionWarpSet()
 {
-	int32 Combo = DefaultAttackCombo - 1;
-	ensure(DefaultAttackData->EffectiveFrameCount.IsValidIndex(Combo));
+	const FVector PlayerLoc = GetActorLocation();
+	const FVector TargetLoc = PlayerLoc + GetActorForwardVector() * 100.f;
+	//const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
 
-	float EffectiveTime = (DefaultAttackData->EffectiveFrameCount[Combo] / DefaultAttackData->FrameRate);
-	if (EffectiveTime > 0.f)
-	{
-		GetWorld()->GetTimerManager().SetTimer(DefaultAttackTimer, this, &ASMEnemyBoss::DefaultAttackComboCheck, EffectiveTime, false);
-	}
+	MotionWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("DefaultAttack"), TargetLoc, (TargetLoc - PlayerLoc).Rotation());
 }
 
-void ASMEnemyBoss::DefaultAttackComboCheck()
-{
-	UE_LOG(LogTemp, Display, TEXT("ComboCheck"));
-	DefaultAttackTimer.Invalidate();
-	if (HasNextCombo)
-	{
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-		DefaultAttackCombo = FMath::Clamp(DefaultAttackCombo + 1, 1, DefaultAttackData->MaxComboCount);
-		FName NextSection = *FString::Printf(TEXT("%s%d"), *DefaultAttackData->MontageSectionNamePrefix, DefaultAttackCombo);
-		AnimInstance->Montage_JumpToSection(NextSection, DefaultAttackMontage);
-
-		OnAttackFinished.ExecuteIfBound();
-		SetDefaultAttackTimer();
-		HasNextCombo = false;
-	}
-}
 
 

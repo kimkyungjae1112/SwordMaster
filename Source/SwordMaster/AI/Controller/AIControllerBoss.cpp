@@ -44,3 +44,8 @@ void AAIControllerBoss::Tick(float DeltaTime)
 	}
 }
 
+bool AAIControllerBoss::AttackInRange()
+{
+	return GetBlackboardComponent()->GetValueAsBool(TEXT("CanAttack"));
+}
+
