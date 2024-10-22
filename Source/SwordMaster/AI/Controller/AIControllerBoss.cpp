@@ -28,6 +28,9 @@ void AAIControllerBoss::Tick(float DeltaTime)
 	if (Target)
 	{
 		FRotator TargetRotation = (Target->GetActorLocation() - GetPawn()->GetActorLocation()).Rotation();
+		TargetRotation.Roll = 0;
+		TargetRotation.Pitch = 0;
+
 		Interval += DeltaTime;
 		if (Interval >= 1.5f)
 		{
