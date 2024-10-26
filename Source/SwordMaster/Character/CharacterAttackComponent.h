@@ -26,6 +26,7 @@ public:
 	void ProgressAttack();
 
 private:
+	/* 기본 공격 */
 	void BeginProgressAttack();
 	void EndProgressAttack(class UAnimMontage* Target, bool IsProperlyEnded);
 	void SetProgressAttackTimer();

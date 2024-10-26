@@ -25,6 +25,14 @@ public:
 	void BeginCrouch();
 	void EndCrouch();
 
+	void BeginEvade();
+	void EndEvade(class UAnimMontage* Target, bool IsProperlyEnded);
+
+	
+private:
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> EvadeMontage;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Util")
 	TObjectPtr<class ACharacter> Character;

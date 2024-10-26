@@ -116,6 +116,8 @@ void ASMEnemyBoss::BeginProgressAttackHit()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
+	MyController->StopAI();
+
 	int32 Temp = CurrentHit;
 	AnimInstance->Montage_Play(ProgressAttackHitData->ProgressAttackHitMontages[Temp]);
 	CurrentHit = FMath::Clamp(CurrentHit + 1, 1, 3);
@@ -128,10 +130,9 @@ void ASMEnemyBoss::BeginProgressAttackHit()
 
 void ASMEnemyBoss::EndProgressAttackHit(UAnimMontage* Target, bool IsProperlyEnded)
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
 	if (!HasNextHit1)
 	{
+		MyController->RunAI();
 		CurrentHit = 0;
 	}
 	else

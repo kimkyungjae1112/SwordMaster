@@ -37,7 +37,8 @@ ASMCharacter::ASMCharacter()
 	Camera->bUsePawnControlRotation = false;
 	
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
@@ -99,6 +100,11 @@ ASMCharacter::ASMCharacter()
 	{
 		RunAction = RunActionRef.Object;
 	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> EvadeActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Dash.IA_Dash'"));
+	if (EvadeActionRef.Object)
+	{
+		EvadeAction = EvadeActionRef.Object;
+	}
 }
 
 void ASMCharacter::BeginPlay()
@@ -128,6 +134,8 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASMCharacter::EndCrouch);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginRun);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ASMCharacter::StopRun);
+
+	EnhancedInputComponent->BindAction(EvadeAction, ETriggerEvent::Started, this, &ASMCharacter::BeginEvade);
 
 }
 
@@ -197,6 +205,10 @@ void ASMCharacter::StopRun()
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 }
 
+void ASMCharacter::BeginEvade()
+{
+	ParkourComponent->BeginEvade();
+}
 
 
 ASMPlayerController* ASMCharacter::GetPlayerController()

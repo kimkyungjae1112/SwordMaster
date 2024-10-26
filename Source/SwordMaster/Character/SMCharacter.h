@@ -61,6 +61,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> RunAction;
 
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> EvadeAction;
+
 	void Move(const FInputActionValue& Value);
 	void LookUp(const FInputActionValue& Value);
 	void Attack();
@@ -70,6 +73,7 @@ private:
 	void EndCrouch();
 	void BeginRun();
 	void StopRun();
+	void BeginEvade();
 
 /* 공격 컴포넌트 */
 private:
