@@ -22,9 +22,11 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
+	//앉기
 	void BeginCrouch();
 	void EndCrouch();
 
+	//구르기
 	void BeginEvade();
 	void EndEvade(class UAnimMontage* Target, bool IsProperlyEnded);
 

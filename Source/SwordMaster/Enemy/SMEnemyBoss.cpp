@@ -34,7 +34,9 @@ ASMEnemyBoss::ASMEnemyBoss()
 
 	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 
+	/* Motion Warping */
 	MotionWarpComp = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("Motion Warping"));
+	ParryingHitWarpComp = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("Parrying Hit Warping"));
 }
 
 void ASMEnemyBoss::BeginPlay()
@@ -80,7 +82,8 @@ void ASMEnemyBoss::AttackByAI()
 
 void ASMEnemyBoss::AttackEndTiming()
 {
-	if (!MyController->AttackInRange())
+	TArray<FOverlapResult> OverlapResults;
+	if (!DetectInRange(OverlapResults))
 	{
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
@@ -91,16 +94,11 @@ void ASMEnemyBoss::AttackEndTiming()
 void ASMEnemyBoss::DefaultAttackHitCheck()
 {
 	float Damage = 50.f;
-	float Range = 200.f;
 
 	TArray<FOverlapResult> OverlapResults;
-	FVector Origin = GetActorLocation();
-	FCollisionQueryParams Params(NAME_None, false, this);
 	FColor Color = FColor::Red;
 
-	bool bHit = GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel1, FCollisionShape::MakeSphere(Range), Params);
-
-	if (bHit)
+	if (DetectInRange(OverlapResults))
 	{
 		for (const FOverlapResult& OverlapResult : OverlapResults)
 		{
@@ -109,7 +107,9 @@ void ASMEnemyBoss::DefaultAttackHitCheck()
 			Color = FColor::Green;
 		}
 	}
-	DrawDebugSphere(GetWorld(), Origin, Range, 24, Color, false, 3.f);
+	
+	FVector Origin = GetActorLocation();
+	DrawDebugSphere(GetWorld(), Origin, GetAttackRange(), 24, Color, false, 3.f);
 }
 
 void ASMEnemyBoss::BeginProgressAttackHit()
@@ -141,6 +141,47 @@ void ASMEnemyBoss::EndProgressAttackHit(UAnimMontage* Target, bool IsProperlyEnd
 	}
 }
 
+void ASMEnemyBoss::BeginParryingAttackHit()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	MyController->StopAI();
+	MyController->SetMoveFlag(false);
+	
+	ParryingAttackHitMotionWarpSet();
+	AnimInstance->Montage_Play(ParryingAttackHitMontage);
+
+	FOnMontageEnded MontageEnd;
+	MontageEnd.BindUObject(this, &ASMEnemyBoss::EndParryingAttackHit);
+	AnimInstance->Montage_SetEndDelegate(MontageEnd, ParryingAttackHitMontage);
+}
+
+void ASMEnemyBoss::EndParryingAttackHit(UAnimMontage* Target, bool IsProperlyEnded)
+{
+	MyController->RunAI();
+	MyController->SetMoveFlag(true);
+}
+
+void ASMEnemyBoss::ParryingAttackHitMotionWarpSet()
+{
+	TArray<FOverlapResult> OverlapResults;
+	if (DetectInRange(OverlapResults))
+	{
+		for (const FOverlapResult& OverlapResult : OverlapResults)
+		{
+			AActor* Target = OverlapResult.GetActor();
+		
+			const FVector PlayerLoc = GetActorLocation();
+			const FVector TargetLoc = Target->GetActorLocation();
+			const FVector MoveLoc = -GetActorForwardVector() * 100.f + GetActorLocation();
+			const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
+
+			UE_LOG(LogTemp, Display, TEXT("Parrying Hit MotionWarp"));
+			ParryingHitWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Parrying"), MoveLoc, TargetRotator);
+		}
+	}
+}
+
 void ASMEnemyBoss::BeginDefaultAttack()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -165,6 +206,13 @@ void ASMEnemyBoss::DefaultAttackMotionWarpSet()
 	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
 
 	MotionWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("DefaultAttack"), TargetLoc, TargetRotator);
+}
+
+bool ASMEnemyBoss::DetectInRange(TArray<FOverlapResult>& InOverlapResults)
+{
+	FVector Origin = GetActorLocation();
+	FCollisionQueryParams Params(NAME_None, false, this);
+	return GetWorld()->OverlapMultiByChannel(InOverlapResults, Origin, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel1, FCollisionShape::MakeSphere(GetAttackRange()), Params);
 }
 
 

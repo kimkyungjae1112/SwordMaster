@@ -34,6 +34,10 @@ public:
 
 	FOnAttackFinished OnAttackFinished;
 
+public:
+	/* 패링 공격 피격 */
+	void BeginParryingAttackHit();
+
 /* 메쉬 */
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
@@ -41,6 +45,7 @@ private:
 
 /* 히트 액션 섹션 */
 private:
+	/* Progress Attack 피격 */
 	void BeginProgressAttackHit();
 	void EndProgressAttackHit(class UAnimMontage* Target, bool IsProperlyEnded);
 
@@ -50,6 +55,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "HitData")
 	TObjectPtr<class UEnemyHitData> ProgressAttackHitData;
 
+	/* 패링 공격 피격 */
+	void EndParryingAttackHit(class UAnimMontage* Target, bool IsProperlyEnded);
+	void ParryingAttackHitMotionWarpSet();
+
 
 /* 기본 공격 섹션 */
 private:
@@ -57,13 +66,16 @@ private:
 	void EndDefaultAttack(class UAnimMontage* Target, bool IsProperlyEnded);
 	
 	void DefaultAttackMotionWarpSet();
-
+	bool DetectInRange(TArray<FOverlapResult>& InOverlapResults);
 
 
 /* 몽타주 섹션 */
 private:
 	UPROPERTY(EditAnywhere, Category = "Montage")
 	TObjectPtr<class UAnimMontage> DefaultAttackMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> ParryingAttackHitMontage;
 
 /* 컨트롤러 */
 private:
@@ -75,4 +87,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
 	TObjectPtr<class UMotionWarpingComponent> MotionWarpComp;
 
+	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
+	TObjectPtr<class UMotionWarpingComponent> ParryingHitWarpComp;
 };

@@ -27,6 +27,7 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+
 /* 카메라 */
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -64,16 +65,29 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> EvadeAction;
 
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> Q_Action;
+
 	void Move(const FInputActionValue& Value);
 	void LookUp(const FInputActionValue& Value);
+	
+	/* 공격 */
 	void Attack();
+	
+	/* 방어 */
 	void BeginBlock();
 	void EndBlock();
+	bool bGaurd = false;
+
+	/* 파쿠르 */
 	void BeginCrouch();
 	void EndCrouch();
 	void BeginRun();
 	void StopRun();
 	void BeginEvade();
+
+	/* 스킬 */
+	void Begin_Q();
 
 /* 공격 컴포넌트 */
 private:
@@ -87,8 +101,11 @@ private:
 
 /* 모션 워핑 */
 private:
-	UPROPERTY(EditAnywhere, Category = "MotionWarp")
+	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
 	TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
+	TObjectPtr<class UMotionWarpingComponent> ParryingWarpComponent;
 
 /* 파쿠르 컴포넌트 */
 private:

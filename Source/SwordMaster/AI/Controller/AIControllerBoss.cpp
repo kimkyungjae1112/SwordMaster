@@ -25,7 +25,7 @@ void AAIControllerBoss::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	APawn* Target = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("Target")));
-	if (Target)
+	if (Target && bCanMove)
 	{
 		FRotator TargetRotation = (Target->GetActorLocation() - GetPawn()->GetActorLocation()).Rotation();
 		TargetRotation.Roll = 0;
@@ -44,8 +44,5 @@ void AAIControllerBoss::Tick(float DeltaTime)
 	}
 }
 
-bool AAIControllerBoss::AttackInRange()
-{
-	return GetBlackboardComponent()->GetValueAsBool(TEXT("CanAttack"));
-}
+
 

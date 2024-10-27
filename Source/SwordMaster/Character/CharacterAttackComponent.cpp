@@ -2,7 +2,7 @@
 
 
 #include "Character/CharacterAttackComponent.h"
-#include "GameFramework/Character.h"
+#include "Enemy/SMEnemyBoss.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/CharacterAnimInstance.h"
 #include "Animation/AnimMontage.h"
@@ -12,6 +12,7 @@
 #include "Engine/DamageEvents.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/PlayerController.h"
+
 
 UCharacterAttackComponent::UCharacterAttackComponent()
 {
@@ -120,7 +121,7 @@ void UCharacterAttackComponent::ProgressAttackTargetSet()
 				const FVector Direction = (TargetLocation - PlayerLocation).GetSafeNormal();
 				
 				FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(Direction);
-				GetMotionWarpComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ProgressAttack"), MoveLocation, TargetRotator);
+				GetMotionWarpComponent(0)->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ProgressAttack"), MoveLocation, TargetRotator);
 
 				return;
 			}	
@@ -128,13 +129,13 @@ void UCharacterAttackComponent::ProgressAttackTargetSet()
 	}
 	else
 	{
-		GetMotionWarpComponent()->RemoveWarpTarget(TEXT("ProgressAttack"));
+		GetMotionWarpComponent(0)->RemoveWarpTarget(TEXT("ProgressAttack"));
 	}
 }
 
 void UCharacterAttackComponent::ProgressAttackRemoveTarget()
 {
-	GetMotionWarpComponent()->RemoveWarpTarget(TEXT("ProgressAttack"));
+	GetMotionWarpComponent(0)->RemoveWarpTarget(TEXT("ProgressAttack"));
 }
 
 
@@ -204,6 +205,15 @@ void UCharacterAttackComponent::BeginBlock()
 	UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(Character->GetMesh()->GetAnimInstance());
 
 	AnimInstance->bIsBlock = true;
+	bGuard = true;
+	bParrying = true;
+
+	GetWorld()->GetTimerManager().SetTimer(ParryingTimer, [&]()
+		{
+			bParrying = false;
+		}, 1.f, false);
+
+	OnParryingSign.ExecuteIfBound();
 }
 
 void UCharacterAttackComponent::EndBlock()
@@ -211,11 +221,90 @@ void UCharacterAttackComponent::EndBlock()
 	UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(Character->GetMesh()->GetAnimInstance());
 
 	AnimInstance->bIsBlock = false;
+	bGuard = false;
+	
+	if (ParryingTimer.IsValid())
+	{
+		ParryingTimer.Invalidate();
+		bParrying = false;
+	}
+
+	OnParryingSign.ExecuteIfBound();
 }
 
-UMotionWarpingComponent* UCharacterAttackComponent::GetMotionWarpComponent()
+void UCharacterAttackComponent::Begin_Q()
 {
-	return Character->GetComponentByClass<UMotionWarpingComponent>();
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(Q_Montage);
+
+	FOnMontageEnded MontageEnd;
+	MontageEnd.BindUObject(this, &UCharacterAttackComponent::End_Q);
+	AnimInstance->Montage_SetEndDelegate(MontageEnd, Q_Montage);
+}
+
+void UCharacterAttackComponent::BeginParryingAttack()
+{
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(ParryingAttackMontage);
+}
+
+void UCharacterAttackComponent::EndParryingAttack(UAnimMontage* Target, bool IsProperlyEnded)
+{
+}
+
+void UCharacterAttackComponent::StartEnemyParryingAttack(AActor* InActor)
+{
+	ASMEnemyBoss* Boss = Cast<ASMEnemyBoss>(InActor);
+	Boss->BeginParryingAttackHit();
+
+	const FVector PlayerLoc = Character->GetActorLocation();
+	const FVector TargetLoc = Boss->GetActorLocation();
+	const FVector MoveLoc = Character->GetActorForwardVector() * 100.f + PlayerLoc;
+	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
+
+	GetMotionWarpComponent(1)->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ParryingAttack"), MoveLoc, TargetRotator);
+}
+
+void UCharacterAttackComponent::End_Q(UAnimMontage* Target, bool IsProperlyEnded)
+{
+}
+
+void UCharacterAttackComponent::Begin_Q_HitCheck()
+{
+	float Damage = 200.f;
+	float Range = 500.f;
+
+	TArray<FOverlapResult> OverlapResults;
+	FVector Origin = Character->GetActorLocation();
+	FVector BoxExtent = FVector(100.f, 100.f, 100.f);
+	FCollisionQueryParams Params(NAME_None, false, Character);
+
+	bool bHit = GetWorld()->OverlapMultiByChannel(OverlapResults, Origin, FQuat::Identity, ECC_GameTraceChannel2, FCollisionShape::MakeBox(BoxExtent), Params);
+
+	if (bHit)
+	{
+		for (const FOverlapResult& OverlapResult : OverlapResults)
+		{
+			ASMEnemyBoss* Actor = Cast<ASMEnemyBoss>(OverlapResult.GetActor());
+			/*float Distance = 0.f;
+			FTimerHandle Temp;
+			GetWorld()->GetTimerManager().SetTimer(Temp, [&]()
+				{
+					Distance = FVector::Dist(Actor->GetActorLocation(), Character->GetActorLocation());
+				})*/
+			
+				
+		}
+	}
+}
+
+UMotionWarpingComponent* UCharacterAttackComponent::GetMotionWarpComponent(uint8 Index)
+{
+	TArray<UMotionWarpingComponent*> MotionWarpingComponents;
+	Character->GetComponents(MotionWarpingComponents);
+	return MotionWarpingComponents[Index];
 }
 
 APlayerController* UCharacterAttackComponent::GetPlayerController()

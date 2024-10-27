@@ -7,6 +7,7 @@
 #include "Interface/AttackHitCheckInterface.h"
 #include "CharacterAttackComponent.generated.h"
 
+DECLARE_DELEGATE(FOnParryingSign)
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SWORDMASTER_API UCharacterAttackComponent : public UActorComponent, public IAttackHitCheckInterface
@@ -19,8 +20,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	FOnParryingSign OnParryingSign;
 	
-	
+	FORCEINLINE bool GetGuardFlag() { return bGuard; }
+	FORCEINLINE bool GetParryingFlag() { return bParrying; }
+
 /* 공격 */
 public:
 	void ProgressAttack();
@@ -52,10 +57,29 @@ private:
 	/* Hit Check */
 	virtual void ProgressAttackHitCheck() override;
 
+
 /* 방어 */
 public:
 	void BeginBlock();
 	void EndBlock();
+	
+private:
+	bool bGuard = false;
+	bool bParrying = false;
+	FTimerHandle ParryingTimer;
+
+/* 스킬 */
+public:
+	void Begin_Q();
+
+	/* 패링 성공시 공격 */
+	void BeginParryingAttack();
+	void EndParryingAttack(class UAnimMontage* Target, bool IsProperlyEnded);
+	void StartEnemyParryingAttack(AActor* InActor);
+
+private:
+	void End_Q(class UAnimMontage* Target, bool IsProperlyEnded);
+	void Begin_Q_HitCheck();
 
 
 /* 몽타주 */
@@ -63,12 +87,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Montage")
 	TObjectPtr<class UAnimMontage> ProgressAttackMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> Q_Montage;
+
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> ParryingAttackMontage;
 
 /* 유틸리티 */
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Character")
 	TObjectPtr<class ACharacter> Character;
 
-	class UMotionWarpingComponent* GetMotionWarpComponent();
+	class UMotionWarpingComponent* GetMotionWarpComponent(uint8 Index);
 	class APlayerController* GetPlayerController();
 };

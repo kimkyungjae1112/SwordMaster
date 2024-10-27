@@ -57,6 +57,7 @@ ASMCharacter::ASMCharacter()
 	/* 컴포넌트 */
 	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
 	MotionWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+	ParryingWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("ParryingWarping"));
 	ParkourComponent = CreateDefaultSubobject<UCharacterParkourComponent>(TEXT("Parkour Component"));
 
 	/* Input */
@@ -105,6 +106,11 @@ ASMCharacter::ASMCharacter()
 	{
 		EvadeAction = EvadeActionRef.Object;
 	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Q_ActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Q.IA_Q'"));
+	if (Q_ActionRef.Object)
+	{
+		Q_Action = Q_ActionRef.Object;
+	}
 }
 
 void ASMCharacter::BeginPlay()
@@ -136,6 +142,7 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ASMCharacter::StopRun);
 
 	EnhancedInputComponent->BindAction(EvadeAction, ETriggerEvent::Started, this, &ASMCharacter::BeginEvade);
+	EnhancedInputComponent->BindAction(Q_Action, ETriggerEvent::Started, this, &ASMCharacter::Begin_Q);
 
 }
 
@@ -143,9 +150,20 @@ float ASMCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	UE_LOG(LogTemp, Display, TEXT("Damage 받음"));
+	UE_LOG(LogTemp, Display, TEXT("대미지 입음"));
 
-	return 0.0f;
+	if (AttackComponent->GetParryingFlag())
+	{
+		AttackComponent->StartEnemyParryingAttack(DamageCauser);
+		AttackComponent->BeginParryingAttack();
+	}
+
+	if (AttackComponent->GetGuardFlag())
+	{
+
+	}
+
+	return DamageAmount;
 }
 
 void ASMCharacter::Move(const FInputActionValue& Value)
@@ -208,6 +226,11 @@ void ASMCharacter::StopRun()
 void ASMCharacter::BeginEvade()
 {
 	ParkourComponent->BeginEvade();
+}
+
+void ASMCharacter::Begin_Q()
+{
+	AttackComponent->Begin_Q();
 }
 
 

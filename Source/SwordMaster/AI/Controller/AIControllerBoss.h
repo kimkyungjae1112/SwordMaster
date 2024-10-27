@@ -18,8 +18,13 @@ public:
 	AAIControllerBoss();
 	
 	virtual void Tick(float DeltaTime) override;
-	bool AttackInRange();
+
+public:
+	FORCEINLINE void SetMoveFlag(bool InCanMove) { bCanMove = InCanMove; }
+
 
 private:
 	float Interval = 0.f;
+	bool bCanMove = true;
+
 };
