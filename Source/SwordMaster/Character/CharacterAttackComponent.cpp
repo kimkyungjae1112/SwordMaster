@@ -200,18 +200,23 @@ void UCharacterAttackComponent::ProgressAttackHitCheck()
 	}
 }
 
+void UCharacterAttackComponent::BeginParrying()
+{
+	bParrying = true;
+
+	GetWorld()->GetTimerManager().SetTimer(ParryingTimer, [&]()
+		{
+			bParrying = false;
+			UE_LOG(LogTemp, Display, TEXT("Timer"));
+		}, 0.5f, false);
+}
+
 void UCharacterAttackComponent::BeginBlock()
 {
 	UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(Character->GetMesh()->GetAnimInstance());
 
 	AnimInstance->bIsBlock = true;
 	bGuard = true;
-	bParrying = true;
-
-	GetWorld()->GetTimerManager().SetTimer(ParryingTimer, [&]()
-		{
-			bParrying = false;
-		}, 1.f, false);
 
 	OnParryingSign.ExecuteIfBound();
 }
@@ -243,30 +248,6 @@ void UCharacterAttackComponent::Begin_Q()
 	AnimInstance->Montage_SetEndDelegate(MontageEnd, Q_Montage);
 }
 
-void UCharacterAttackComponent::BeginParryingAttack()
-{
-	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-
-	AnimInstance->Montage_Play(ParryingAttackMontage);
-}
-
-void UCharacterAttackComponent::EndParryingAttack(UAnimMontage* Target, bool IsProperlyEnded)
-{
-}
-
-void UCharacterAttackComponent::StartEnemyParryingAttack(AActor* InActor)
-{
-	ASMEnemyBoss* Boss = Cast<ASMEnemyBoss>(InActor);
-	Boss->BeginParryingAttackHit();
-
-	const FVector PlayerLoc = Character->GetActorLocation();
-	const FVector TargetLoc = Boss->GetActorLocation();
-	const FVector MoveLoc = Character->GetActorForwardVector() * 100.f + PlayerLoc;
-	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
-
-	GetMotionWarpComponent(1)->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ParryingAttack"), MoveLoc, TargetRotator);
-}
-
 void UCharacterAttackComponent::End_Q(UAnimMontage* Target, bool IsProperlyEnded)
 {
 }
@@ -294,10 +275,34 @@ void UCharacterAttackComponent::Begin_Q_HitCheck()
 				{
 					Distance = FVector::Dist(Actor->GetActorLocation(), Character->GetActorLocation());
 				})*/
-			
-				
+
+
 		}
 	}
+}
+
+void UCharacterAttackComponent::BeginParryingAttack()
+{
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(ParryingAttackMontage);
+}
+
+void UCharacterAttackComponent::EndParryingAttack(UAnimMontage* Target, bool IsProperlyEnded)
+{
+}
+
+void UCharacterAttackComponent::StartEnemyParryingAttack(AActor* InActor)
+{
+	ASMEnemyBoss* Boss = Cast<ASMEnemyBoss>(InActor);
+	Boss->BeginParryingAttackHit();
+
+	const FVector PlayerLoc = Character->GetActorLocation();
+	const FVector TargetLoc = Boss->GetActorLocation();
+	const FVector MoveLoc = Character->GetActorForwardVector() * 100.f + PlayerLoc;
+	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
+
+	GetMotionWarpComponent(1)->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("ParryingAttack"), MoveLoc, TargetRotator);
 }
 
 UMotionWarpingComponent* UCharacterAttackComponent::GetMotionWarpComponent(uint8 Index)

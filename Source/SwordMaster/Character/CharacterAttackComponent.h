@@ -60,6 +60,7 @@ private:
 
 /* 방어 */
 public:
+	void BeginParrying();
 	void BeginBlock();
 	void EndBlock();
 	
@@ -70,16 +71,16 @@ private:
 
 /* 스킬 */
 public:
+	/* Q 스킬 */
 	void Begin_Q();
+	void End_Q(class UAnimMontage* Target, bool IsProperlyEnded);
+	void Begin_Q_HitCheck();
 
 	/* 패링 성공시 공격 */
 	void BeginParryingAttack();
 	void EndParryingAttack(class UAnimMontage* Target, bool IsProperlyEnded);
 	void StartEnemyParryingAttack(AActor* InActor);
 
-private:
-	void End_Q(class UAnimMontage* Target, bool IsProperlyEnded);
-	void Begin_Q_HitCheck();
 
 
 /* 몽타주 */

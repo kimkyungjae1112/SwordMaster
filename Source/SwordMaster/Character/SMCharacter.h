@@ -75,6 +75,7 @@ private:
 	void Attack();
 	
 	/* 방어 */
+	void BeginParrying();
 	void BeginBlock();
 	void EndBlock();
 	bool bGaurd = false;
