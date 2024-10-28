@@ -63,10 +63,16 @@ private:
 	TObjectPtr<class UInputAction> RunAction;
 
 	UPROPERTY(VisibleAnywhere, Category = "Input")
-	TObjectPtr<class UInputAction> EvadeAction;
+	TObjectPtr<class UInputAction> DashAction;
 
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	TObjectPtr<class UInputAction> Q_Action;
+
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> E_Action;
+
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	TObjectPtr<class UInputAction> R_Action;
 
 	void Move(const FInputActionValue& Value);
 	void LookUp(const FInputActionValue& Value);
@@ -85,10 +91,12 @@ private:
 	void EndCrouch();
 	void BeginRun();
 	void StopRun();
-	void BeginEvade();
+	void BeginDash();
 
 	/* 스킬 */
 	void Begin_Q();
+	void Begin_E();
+	void Begin_R();
 
 /* 공격 컴포넌트 */
 private:
@@ -107,6 +115,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
 	TObjectPtr<class UMotionWarpingComponent> ParryingWarpComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "MotionWarp")
+	TObjectPtr<class UMotionWarpingComponent> ESkillWarpComponent;
+
 
 /* 파쿠르 컴포넌트 */
 private:

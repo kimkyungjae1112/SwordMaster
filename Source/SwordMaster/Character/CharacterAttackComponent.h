@@ -76,6 +76,16 @@ public:
 	void End_Q(class UAnimMontage* Target, bool IsProperlyEnded);
 	virtual void Q_SkillHitCheck() override;
 
+	/* E 스킬 */
+	void Begin_E();
+	bool CheckInSkillE(FHitResult& InHitResult);
+	void ESkillMotionWarpSet();
+	void End_E(class UAnimMontage* Target, bool IsProperlyEnded);
+
+	/* R 스킬 */
+	void Begin_R();
+	void End_R(class UAnimMontage* Target, bool IsProperlyEnded);
+
 	/* 패링 성공시 공격 */
 	void BeginParryingAttack();
 	void EndParryingAttack(class UAnimMontage* Target, bool IsProperlyEnded);
@@ -90,6 +100,15 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Montage")
 	TObjectPtr<class UAnimMontage> Q_Montage;
+
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> E_Montage_Fail;
+
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> E_Montage_Success;
+
+	UPROPERTY(EditAnywhere, Category = "Montage")
+	TObjectPtr<class UAnimMontage> R_Montage;
 
 	UPROPERTY(EditAnywhere, Category = "Montage")
 	TObjectPtr<class UAnimMontage> ParryingAttackMontage;

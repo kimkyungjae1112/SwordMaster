@@ -277,6 +277,61 @@ void UCharacterAttackComponent::Q_SkillHitCheck()
 	}
 }
 
+void UCharacterAttackComponent::Begin_E()
+{
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+	FHitResult HitResult;
+	UAnimMontage* E_Montage = E_Montage_Fail;
+	if (CheckInSkillE(HitResult) || true)
+	{
+		E_Montage = E_Montage_Success;
+		ESkillMotionWarpSet();
+	}
+
+	AnimInstance->Montage_Play(E_Montage);
+
+	FOnMontageEnded MontageEnd;
+	MontageEnd.BindUObject(this, &UCharacterAttackComponent::End_E);
+	AnimInstance->Montage_SetEndDelegate(MontageEnd, E_Montage);
+}
+
+bool UCharacterAttackComponent::CheckInSkillE(FHitResult& InHitResult)
+{
+	FVector Origin = Character->GetActorLocation();
+	FVector End = Origin + Character->GetActorForwardVector() * 400.f;
+	return GetWorld()->LineTraceSingleByChannel(InHitResult, Origin, End, ECC_GameTraceChannel2);
+}
+
+void UCharacterAttackComponent::ESkillMotionWarpSet()
+{
+	FVector Origin = Character->GetActorLocation();
+	FVector Target = Origin + FVector(0.f, 0.f, 500.f);
+	UE_LOG(LogTemp, Display, TEXT("검사 되는교?"));
+
+	GetMotionWarpComponent(2)->AddOrUpdateWarpTargetFromLocation(TEXT("ESkill"), Target);
+}
+
+void UCharacterAttackComponent::End_E(UAnimMontage* Target, bool IsProperlyEnded)
+{
+	GetMotionWarpComponent(2)->RemoveWarpTarget(TEXT("ESkill"));
+}
+
+void UCharacterAttackComponent::Begin_R()
+{
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(R_Montage);
+
+	FOnMontageEnded MontageEnd;
+	MontageEnd.BindUObject(this, &UCharacterAttackComponent::End_Q);
+	AnimInstance->Montage_SetEndDelegate(MontageEnd, Q_Montage);
+}
+
+void UCharacterAttackComponent::End_R(UAnimMontage* Target, bool IsProperlyEnded)
+{
+}
+
 void UCharacterAttackComponent::BeginParryingAttack()
 {
 	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();

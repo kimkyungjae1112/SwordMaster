@@ -39,7 +39,7 @@ ASMCharacter::ASMCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
-	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
@@ -58,6 +58,7 @@ ASMCharacter::ASMCharacter()
 	AttackComponent = CreateDefaultSubobject<UCharacterAttackComponent>(TEXT("Attack Component"));
 	MotionWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	ParryingWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("ParryingWarping"));
+	ESkillWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("ESkillWarping"));
 	ParkourComponent = CreateDefaultSubobject<UCharacterParkourComponent>(TEXT("Parkour Component"));
 
 	/* Input */
@@ -104,12 +105,22 @@ ASMCharacter::ASMCharacter()
 	static ConstructorHelpers::FObjectFinder<UInputAction> EvadeActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Dash.IA_Dash'"));
 	if (EvadeActionRef.Object)
 	{
-		EvadeAction = EvadeActionRef.Object;
+		DashAction = EvadeActionRef.Object;
 	}
 	static ConstructorHelpers::FObjectFinder<UInputAction> Q_ActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_Q.IA_Q'"));
 	if (Q_ActionRef.Object)
 	{
 		Q_Action = Q_ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> E_ActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_E.IA_E'"));
+	if (E_ActionRef.Object)
+	{
+		E_Action = E_ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> R_ActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/SwordMaster/Input/IA/IA_R.IA_R'"));
+	if (R_ActionRef.Object)
+	{
+		R_Action = R_ActionRef.Object;
 	}
 }
 
@@ -142,8 +153,10 @@ void ASMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &ASMCharacter::BeginRun);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ASMCharacter::StopRun);
 
-	EnhancedInputComponent->BindAction(EvadeAction, ETriggerEvent::Started, this, &ASMCharacter::BeginEvade);
+	EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ASMCharacter::BeginDash);
 	EnhancedInputComponent->BindAction(Q_Action, ETriggerEvent::Started, this, &ASMCharacter::Begin_Q);
+	EnhancedInputComponent->BindAction(E_Action, ETriggerEvent::Started, this, &ASMCharacter::Begin_E);
+	EnhancedInputComponent->BindAction(R_Action, ETriggerEvent::Started, this, &ASMCharacter::Begin_R);
 
 }
 
@@ -151,7 +164,6 @@ float ASMCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	UE_LOG(LogTemp, Display, TEXT("대미지 입음"));
 
 	if (AttackComponent->GetParryingFlag())
 	{
@@ -226,10 +238,10 @@ void ASMCharacter::BeginRun()
 
 void ASMCharacter::StopRun()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 }
 
-void ASMCharacter::BeginEvade()
+void ASMCharacter::BeginDash()
 {
 	ParkourComponent->BeginEvade();
 }
@@ -237,6 +249,16 @@ void ASMCharacter::BeginEvade()
 void ASMCharacter::Begin_Q()
 {
 	AttackComponent->Begin_Q();
+}
+
+void ASMCharacter::Begin_E()
+{
+	AttackComponent->Begin_E();
+}
+
+void ASMCharacter::Begin_R()
+{
+	AttackComponent->Begin_R();
 }
 
 
