@@ -22,4 +22,5 @@ class SWORDMASTER_API IAttackHitCheckInterface
 
 public:
 	virtual void ProgressAttackHitCheck() = 0;
+	virtual void Q_SkillHitCheck() = 0;
 };

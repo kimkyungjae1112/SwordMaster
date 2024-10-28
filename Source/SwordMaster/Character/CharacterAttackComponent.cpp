@@ -252,7 +252,7 @@ void UCharacterAttackComponent::End_Q(UAnimMontage* Target, bool IsProperlyEnded
 {
 }
 
-void UCharacterAttackComponent::Begin_Q_HitCheck()
+void UCharacterAttackComponent::Q_SkillHitCheck()
 {
 	float Damage = 200.f;
 	float Range = 500.f;
@@ -268,15 +268,11 @@ void UCharacterAttackComponent::Begin_Q_HitCheck()
 	{
 		for (const FOverlapResult& OverlapResult : OverlapResults)
 		{
+			FDamageEvent DamageEvent;
 			ASMEnemyBoss* Actor = Cast<ASMEnemyBoss>(OverlapResult.GetActor());
-			/*float Distance = 0.f;
-			FTimerHandle Temp;
-			GetWorld()->GetTimerManager().SetTimer(Temp, [&]()
-				{
-					Distance = FVector::Dist(Actor->GetActorLocation(), Character->GetActorLocation());
-				})*/
+			Actor->TakeDamage(Damage, DamageEvent, GetPlayerController(), Character);
 
-
+			return;
 		}
 	}
 }

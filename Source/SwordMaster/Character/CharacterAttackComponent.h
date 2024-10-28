@@ -74,7 +74,7 @@ public:
 	/* Q 스킬 */
 	void Begin_Q();
 	void End_Q(class UAnimMontage* Target, bool IsProperlyEnded);
-	void Begin_Q_HitCheck();
+	virtual void Q_SkillHitCheck() override;
 
 	/* 패링 성공시 공격 */
 	void BeginParryingAttack();

@@ -109,7 +109,7 @@ void ASMEnemyBoss::DefaultAttackHitCheck()
 	}
 	
 	FVector Origin = GetActorLocation();
-	DrawDebugSphere(GetWorld(), Origin, GetAttackRange(), 24, Color, false, 3.f);
+	//DrawDebugSphere(GetWorld(), Origin, GetAttackRange(), 24, Color, false, 3.f);
 }
 
 void ASMEnemyBoss::BeginProgressAttackHit()
