@@ -283,17 +283,29 @@ void UCharacterAttackComponent::Begin_E()
 
 	FHitResult HitResult;
 	UAnimMontage* E_Montage = E_Montage_Fail;
-	if (CheckInSkillE(HitResult) || true)
+	if (CheckInSkillE(HitResult))
 	{
 		E_Montage = E_Montage_Success;
 		ESkillMotionWarpSet();
 	}
 
+	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 	AnimInstance->Montage_Play(E_Montage);
+	if (HitResult.GetActor())
+	{
+		ACharacter* Enemy = Cast<ACharacter>(HitResult.GetActor());
+		Enemy->LaunchCharacter(Character->GetActorUpVector() * 700.f, true, true);
+	}
 
 	FOnMontageEnded MontageEnd;
 	MontageEnd.BindUObject(this, &UCharacterAttackComponent::End_E);
 	AnimInstance->Montage_SetEndDelegate(MontageEnd, E_Montage);
+}
+
+void UCharacterAttackComponent::End_E(UAnimMontage* Target, bool IsProperlyEnded)
+{
+	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	GetMotionWarpComponent(2)->RemoveWarpTarget(TEXT("ESkill"));
 }
 
 bool UCharacterAttackComponent::CheckInSkillE(FHitResult& InHitResult)
@@ -306,16 +318,12 @@ bool UCharacterAttackComponent::CheckInSkillE(FHitResult& InHitResult)
 void UCharacterAttackComponent::ESkillMotionWarpSet()
 {
 	FVector Origin = Character->GetActorLocation();
-	FVector Target = Origin + FVector(0.f, 0.f, 500.f);
+	FVector Target = Origin + Character->GetActorUpVector() * 250.f;
 	UE_LOG(LogTemp, Display, TEXT("검사 되는교?"));
 
 	GetMotionWarpComponent(2)->AddOrUpdateWarpTargetFromLocation(TEXT("ESkill"), Target);
 }
 
-void UCharacterAttackComponent::End_E(UAnimMontage* Target, bool IsProperlyEnded)
-{
-	GetMotionWarpComponent(2)->RemoveWarpTarget(TEXT("ESkill"));
-}
 
 void UCharacterAttackComponent::Begin_R()
 {

@@ -78,9 +78,9 @@ public:
 
 	/* E 스킬 */
 	void Begin_E();
+	void End_E(class UAnimMontage* Target, bool IsProperlyEnded);
 	bool CheckInSkillE(FHitResult& InHitResult);
 	void ESkillMotionWarpSet();
-	void End_E(class UAnimMontage* Target, bool IsProperlyEnded);
 
 	/* R 스킬 */
 	void Begin_R();
