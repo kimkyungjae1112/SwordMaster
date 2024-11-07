@@ -22,13 +22,13 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	if (Interface == nullptr) return EBTNodeResult::Failed;
 
 	FOnAttackFinished OnAttackFinished;
-	OnAttackFinished.BindLambda([&]()
+	/*OnAttackFinished.BindLambda([&]()
 		{
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		});
 
-	Interface->SetAttackFinished(OnAttackFinished);
+	Interface->SetAttackFinished(OnAttackFinished);*/
 	Interface->AttackByAI();
 
-	return EBTNodeResult::InProgress;
+	return EBTNodeResult::Succeeded;
 }

@@ -250,6 +250,7 @@ void UCharacterAttackComponent::Begin_Q()
 
 void UCharacterAttackComponent::End_Q(UAnimMontage* Target, bool IsProperlyEnded)
 {
+	UE_LOG(LogTemp, Display, TEXT("End Q"));
 }
 
 void UCharacterAttackComponent::Q_SkillHitCheck()
@@ -275,6 +276,12 @@ void UCharacterAttackComponent::Q_SkillHitCheck()
 			return;
 		}
 	}
+
+	/* 몽타주 EndDelegate가 언제 실행되는지 테스트
+	UE_LOG(LogTemp, Display, TEXT("StopMontage"));
+	UAnimInstance* Anim = Character->GetMesh()->GetAnimInstance();
+	Anim->Montage_Stop(0.1f, Q_Montage);
+	Anim->Montage_SetPosition(Q_Montage, Q_Montage->GetPlayLength());*/
 }
 
 void UCharacterAttackComponent::Begin_E()

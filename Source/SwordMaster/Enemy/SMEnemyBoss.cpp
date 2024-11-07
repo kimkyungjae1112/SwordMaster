@@ -50,7 +50,6 @@ float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	BeginProgressAttackHit();
 
 	return DamageAmount;
 }
@@ -77,7 +76,13 @@ void ASMEnemyBoss::SetAttackFinished(const FOnAttackFinished& InOnAttackFinished
 
 void ASMEnemyBoss::AttackByAI()
 {
-	BeginDefaultAttack();
+	if (CurrentCombo == 1 && bCanAttack)
+	{
+		BeginDefaultAttack();
+		bCanAttack = false;
+		return;
+	}
+
 }
 
 void ASMEnemyBoss::AttackEndTiming()
@@ -85,59 +90,20 @@ void ASMEnemyBoss::AttackEndTiming()
 	TArray<FOverlapResult> OverlapResults;
 	if (!DetectInRange(OverlapResults))
 	{
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-		AnimInstance->StopAllMontages(0.5f);
+		OnAttackFinished.ExecuteIfBound();
 	}
 }
 
 void ASMEnemyBoss::DefaultAttackHitCheck()
 {
-	float Damage = 50.f;
-
+	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
 	TArray<FOverlapResult> OverlapResults;
-	FColor Color = FColor::Red;
-
 	if (DetectInRange(OverlapResults))
 	{
-		for (const FOverlapResult& OverlapResult : OverlapResults)
-		{
-			FDamageEvent DamageEvent;
-			OverlapResult.GetActor()->TakeDamage(Damage, DamageEvent, GetController(), this);
-			Color = FColor::Green;
-		}
-	}
-	
-	FVector Origin = GetActorLocation();
-	//DrawDebugSphere(GetWorld(), Origin, GetAttackRange(), 24, Color, false, 3.f);
-}
-
-void ASMEnemyBoss::BeginProgressAttackHit()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	MyController->StopAI();
-
-	int32 Temp = CurrentHit;
-	AnimInstance->Montage_Play(ProgressAttackHitData->ProgressAttackHitMontages[Temp]);
-	CurrentHit = FMath::Clamp(CurrentHit + 1, 1, 3);
-	HasNextHit1 = true;
-
-	FOnMontageEnded MontageEnd;
-	MontageEnd.BindUObject(this, &ASMEnemyBoss::EndProgressAttackHit);
-	AnimInstance->Montage_SetEndDelegate(MontageEnd, ProgressAttackHitData->ProgressAttackHitMontages[Temp]);
-}
-
-void ASMEnemyBoss::EndProgressAttackHit(UAnimMontage* Target, bool IsProperlyEnded)
-{
-	if (!HasNextHit1)
-	{
-		MyController->RunAI();
-		CurrentHit = 0;
-	}
-	else
-	{
-		HasNextHit1 = false;
+		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, DefaultAttackData->MaxComboCount);
+		FName NextSection = *FString::Printf(TEXT("%s%d"), *DefaultAttackData->MontageSectionNamePrefix, CurrentCombo);
+		Anim->Montage_JumpToSection(NextSection, DefaultAttackMontage);
+		UE_LOG(LogTemp, Display, TEXT("현재 몽타주 섹션 : %d"), CurrentCombo);
 	}
 }
 
@@ -196,7 +162,9 @@ void ASMEnemyBoss::BeginDefaultAttack()
 
 void ASMEnemyBoss::EndDefaultAttack(UAnimMontage* Target, bool IsProperlyEnded)
 {
-	OnAttackFinished.ExecuteIfBound();
+	CurrentCombo = 1;
+	bCanAttack = true;
+	MotionWarpComp->RemoveAllWarpTargets();
 }
 
 void ASMEnemyBoss::DefaultAttackMotionWarpSet()
