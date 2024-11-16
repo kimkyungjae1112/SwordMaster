@@ -2,7 +2,7 @@
 
 
 #include "AI/Service/BTService_Detect.h"
-#include "AIController.h"
+#include "AI/Controller/AIControllerBoss.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Interface/AIInterface.h"
 #include "Engine/OverlapResult.h"
@@ -34,23 +34,21 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		for (const FOverlapResult& OverlapResult : OverlapResults)
 		{
 			APawn* Target = Cast<APawn>(OverlapResult.GetActor());
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("Target"), Target);
 		
 			float Dist = FVector::Dist(Target->GetActorLocation(), Owner->GetActorLocation());
 			if (Dist <= Interface->GetAttackRange())
 			{
-				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("CanAttack"), true);
+				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("CanMeleeAttack"), true);
 			}
 			else
 			{
 
-				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("CanAttack"), false);
+				OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("CanMeleeAttack"), false);
 			}
-		}
 
-		return;
+			AAIControllerBoss* AICon = Cast<AAIControllerBoss>(Target->GetController());
+			AICon->SetFocus(Target);
+		}
 	}
 
-	OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("Target"), nullptr);
-	return;
 }

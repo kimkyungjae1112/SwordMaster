@@ -118,6 +118,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Character")
 	TObjectPtr<class ACharacter> Character;
 
+	UPROPERTY(VisibleAnywhere, Category = "Character")
+	TObjectPtr<class UAnimInstance> Temp;
+
 	class UMotionWarpingComponent* GetMotionWarpComponent(uint8 Index);
 	class APlayerController* GetPlayerController();
 };

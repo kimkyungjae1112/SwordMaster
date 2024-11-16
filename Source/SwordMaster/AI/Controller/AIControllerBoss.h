@@ -19,9 +19,12 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	FORCEINLINE void SetMoveFlag(bool InCanMove) { bCanMove = InCanMove; }
-
+	ACharacter* GetPlayer();
 
 private:
 	float Interval = 0.f;

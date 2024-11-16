@@ -23,8 +23,6 @@ protected:
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
-	virtual float GetDetectRadius() override;
-	virtual float GetPatrolRadius() override;
 	virtual float GetAttackRange() override;
 	virtual void SetAttackFinished(const FOnAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
@@ -37,11 +35,6 @@ public:
 	/* 패링 공격 피격 */
 	void BeginParryingAttackHit();
 
-/* 메쉬 */
-private:
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> WeaponMeshComp;
-
 	/* 패링 공격 피격 */
 	void EndParryingAttackHit(class UAnimMontage* Target, bool IsProperlyEnded);
 	void ParryingAttackHitMotionWarpSet();
@@ -51,6 +44,7 @@ private:
 private:
 	void BeginDefaultAttack();
 	void EndDefaultAttack(class UAnimMontage* Target, bool IsProperlyEnded);
+	void DefaultAttackMotionWarpSet();
 
 	UPROPERTY(EditAnywhere, Category = "Combo")
 	TObjectPtr<class UEnemyDefaultAttackData> DefaultAttackData;
@@ -58,14 +52,17 @@ private:
 	bool bCanAttack = true;
 	int32 CurrentCombo = 1;
 
-	void DefaultAttackMotionWarpSet();
-	bool DetectInRange(TArray<FOverlapResult>& InOverlapResults);
+	bool MeleeAttackDetectInRange(TArray<FOverlapResult>& InOverlapResults);
 
-	//플래그는 true
-	//기본 공격 실행 시 플래그 false
-	//공격 범위 췤
-	//그 다음 노티파이 다음 섹션으로 이동 (공격 가능하면)
-	//아니라면 콤보 0으로 초기화
+/* 플레이어 포인터 */
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Player")
+	TObjectPtr<class ACharacter> Player;
+
+/* 메쉬 */
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> WeaponMeshComp;
 
 /* 몽타주 섹션 */
 private:

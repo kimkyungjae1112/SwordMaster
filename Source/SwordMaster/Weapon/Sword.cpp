@@ -6,17 +6,14 @@
 
 ASword::ASword()
 {
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = Root;
+	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	RootComponent = Box;
+	Box->OnComponentBeginOverlap.AddDynamic(this, &ASword::OnOverlap);
+	Box->SetCollisionProfileName(TEXT("Sword"));
 
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	MeshComp->SetupAttachment(Root);
+	MeshComp->SetupAttachment(Box);
 	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
-
-	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	Box->SetupAttachment(Root);
-	Box->OnComponentHit.AddDynamic(this, &ASword::OnHit);
-	Box->SetCollisionProfileName(TEXT("Sword"));
 }
 
 void ASword::BeginPlay()
@@ -25,7 +22,7 @@ void ASword::BeginPlay()
 	
 }
 
-void ASword::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ASword::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 }
 

@@ -44,6 +44,7 @@ void ASMEnemyBoss::BeginPlay()
 	Super::BeginPlay();
 
 	MyController = CastChecked<AAIControllerBoss>(GetController());
+	Player = MyController->GetPlayer();
 }
 
 float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -52,16 +53,6 @@ float ASMEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 
 	return DamageAmount;
-}
-
-float ASMEnemyBoss::GetDetectRadius()
-{
-	return 800.f;
-}
-
-float ASMEnemyBoss::GetPatrolRadius()
-{
-	return 600.0f;
 }
 
 float ASMEnemyBoss::GetAttackRange()
@@ -88,7 +79,7 @@ void ASMEnemyBoss::AttackByAI()
 void ASMEnemyBoss::AttackEndTiming()
 {
 	TArray<FOverlapResult> OverlapResults;
-	if (!DetectInRange(OverlapResults))
+	if (!MeleeAttackDetectInRange(OverlapResults))
 	{
 		OnAttackFinished.ExecuteIfBound();
 	}
@@ -98,7 +89,7 @@ void ASMEnemyBoss::DefaultAttackHitCheck()
 {
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
 	TArray<FOverlapResult> OverlapResults;
-	if (DetectInRange(OverlapResults))
+	if (MeleeAttackDetectInRange(OverlapResults))
 	{
 		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, DefaultAttackData->MaxComboCount);
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *DefaultAttackData->MontageSectionNamePrefix, CurrentCombo);
@@ -131,18 +122,17 @@ void ASMEnemyBoss::EndParryingAttackHit(UAnimMontage* Target, bool IsProperlyEnd
 void ASMEnemyBoss::ParryingAttackHitMotionWarpSet()
 {
 	TArray<FOverlapResult> OverlapResults;
-	if (DetectInRange(OverlapResults))
+	if (MeleeAttackDetectInRange(OverlapResults))
 	{
 		for (const FOverlapResult& OverlapResult : OverlapResults)
 		{
 			AActor* Target = OverlapResult.GetActor();
 		
-			const FVector PlayerLoc = GetActorLocation();
-			const FVector TargetLoc = Target->GetActorLocation();
-			const FVector MoveLoc = -GetActorForwardVector() * 100.f + GetActorLocation();
-			const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
+			FVector PlayerLoc = GetActorLocation();
+			FVector TargetLoc = Target->GetActorLocation();
+			FVector MoveLoc = -GetActorForwardVector() * 100.f + GetActorLocation();
+			FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
 
-			UE_LOG(LogTemp, Display, TEXT("Parrying Hit MotionWarp"));
 			ParryingHitWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("Parrying"), MoveLoc, TargetRotator);
 		}
 	}
@@ -169,14 +159,13 @@ void ASMEnemyBoss::EndDefaultAttack(UAnimMontage* Target, bool IsProperlyEnded)
 
 void ASMEnemyBoss::DefaultAttackMotionWarpSet()
 {
-	const FVector PlayerLoc = GetActorLocation();
-	const FVector TargetLoc = PlayerLoc + GetActorForwardVector() * 100.f;
-	const FRotator TargetRotator = UKismetMathLibrary::MakeRotFromX(TargetLoc - PlayerLoc);
+	FVector Origin = GetActorLocation();
+	FVector TargetLoc = Origin + GetActorForwardVector() * 100.f;
 
-	MotionWarpComp->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("DefaultAttack"), TargetLoc, TargetRotator);
+	MotionWarpComp->AddOrUpdateWarpTargetFromLocation(TEXT("DefaultAttack"), TargetLoc);
 }
 
-bool ASMEnemyBoss::DetectInRange(TArray<FOverlapResult>& InOverlapResults)
+bool ASMEnemyBoss::MeleeAttackDetectInRange(TArray<FOverlapResult>& InOverlapResults)
 {
 	FVector Origin = GetActorLocation();
 	FCollisionQueryParams Params(NAME_None, false, this);

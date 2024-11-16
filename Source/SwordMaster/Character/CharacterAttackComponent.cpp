@@ -29,6 +29,7 @@ void UCharacterAttackComponent::BeginPlay()
 	Super::BeginPlay();
 
 	Character = CastChecked<ACharacter>(GetOwner());
+	Temp = Character->GetMesh()->GetAnimInstance();
 }
 
 /* 콤보 어택 */
@@ -207,7 +208,6 @@ void UCharacterAttackComponent::BeginParrying()
 	GetWorld()->GetTimerManager().SetTimer(ParryingTimer, [&]()
 		{
 			bParrying = false;
-			UE_LOG(LogTemp, Display, TEXT("Timer"));
 		}, 0.5f, false);
 }
 
@@ -239,13 +239,13 @@ void UCharacterAttackComponent::EndBlock()
 
 void UCharacterAttackComponent::Begin_Q()
 {
-	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+	//UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 
-	AnimInstance->Montage_Play(Q_Montage);
+	Temp->Montage_Play(Q_Montage);
 
 	FOnMontageEnded MontageEnd;
 	MontageEnd.BindUObject(this, &UCharacterAttackComponent::End_Q);
-	AnimInstance->Montage_SetEndDelegate(MontageEnd, Q_Montage);
+	Temp->Montage_SetEndDelegate(MontageEnd, Q_Montage);
 }
 
 void UCharacterAttackComponent::End_Q(UAnimMontage* Target, bool IsProperlyEnded)

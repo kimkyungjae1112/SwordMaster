@@ -5,6 +5,8 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Character/SMCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 AAIControllerBoss::AAIControllerBoss()
 {
@@ -24,7 +26,7 @@ void AAIControllerBoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	APawn* Target = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("Target")));
+	/*APawn* Target = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("Target")));
 	if (Target && bCanMove)
 	{
 		FRotator TargetRotation = (Target->GetActorLocation() - GetPawn()->GetActorLocation()).Rotation();
@@ -32,16 +34,28 @@ void AAIControllerBoss::Tick(float DeltaTime)
 		TargetRotation.Pitch = 0;
 
 		Interval += DeltaTime;
-		if (Interval >= 1.5f)
+		if (Interval >= 2.5f)
 		{
 			FVector TargetLocation = Target->GetActorLocation();
-			TargetLocation.X += FMath::RandRange(-300.f, 300.f);
-			TargetLocation.Y += FMath::RandRange(-300.f, 300.f);
+			TargetLocation.X += FMath::RandRange(-1000.f, 1000.f);
+			TargetLocation.Y += FMath::RandRange(-1000.f, 1000.f);
 			MoveToLocation(TargetLocation);
 			Interval = 0.f;
 		}
 		GetPawn()->SetActorRotation(TargetRotation);
-	}
+	}*/
+}
+
+void AAIControllerBoss::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetBlackboardComponent()->SetValueAsObject(TEXT("Target"), UGameplayStatics::GetActorOfClass(GetWorld(), ASMCharacter::StaticClass()));
+}
+
+ACharacter* AAIControllerBoss::GetPlayer()
+{
+	return CastChecked<ACharacter>(GetBlackboardComponent()->GetValueAsObject(TEXT("Target")));
 }
 
 
